@@ -1,6 +1,8 @@
 """Model provider abstraction and factory for LedgerGuard."""
 
 from abc import ABC, abstractmethod
+import os
+from typing import Any
 
 import boto3
 from strands.models.bedrock import BedrockModel
@@ -19,8 +21,45 @@ class ModelProvider(ABC):
         pass
 
 
+class BedrockMantleProvider(ModelProvider):
+    """Amazon Bedrock Mantle model provider for primary development.
+
+    Uses Strands OpenAIModel connected to Amazon Bedrock Mantle
+    via bedrock_mantle_config and AWS IAM credentials.
+    Zero network calls are executed during initialization.
+    """
+
+    def __init__(self, settings: Settings, session: boto3.Session | None = None) -> None:
+        self.settings = settings
+        self._session = session
+
+    def get_model(self) -> Model:
+        """Instantiate an OpenAIModel configured for Bedrock Mantle."""
+        profile = self.settings.AWS_PROFILE or self.settings.BEDROCK_PROFILE_NAME
+        if profile and not os.environ.get("AWS_PROFILE"):
+            os.environ["AWS_PROFILE"] = profile
+
+        session = self._session
+        if session is None and profile:
+            session = boto3.Session(
+                profile_name=profile,
+                region_name=self.settings.AWS_REGION,
+            )
+
+        mantle_config: dict[str, Any] = {
+            "region": self.settings.AWS_REGION,
+        }
+        if session is not None:
+            mantle_config["boto_session"] = session
+
+        return OpenAIModel(
+            model_id=self.settings.BEDROCK_MANTLE_MODEL_ID,
+            bedrock_mantle_config=mantle_config,
+        )
+
+
 class OpenRouterProvider(ModelProvider):
-    """OpenRouter model provider for development and testing."""
+    """OpenRouter model provider for explicit development alternative."""
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -47,8 +86,8 @@ class OpenRouterProvider(ModelProvider):
         )
 
 
-class BedrockProvider(ModelProvider):
-    """Amazon Bedrock model provider for AWS environments.
+class BedrockRuntimeProvider(ModelProvider):
+    """Amazon Bedrock Runtime model provider for AWS production environments.
 
     Constructs a BedrockModel instance without executing network requests or live inference.
     """
@@ -60,20 +99,24 @@ class BedrockProvider(ModelProvider):
     def get_model(self) -> Model:
         """Instantiate a BedrockModel using configured AWS parameters."""
         session = self._session
+        profile = self.settings.BEDROCK_PROFILE_NAME or self.settings.AWS_PROFILE
         if session is None:
-            if self.settings.BEDROCK_PROFILE_NAME:
+            if profile:
                 session = boto3.Session(
-                    profile_name=self.settings.BEDROCK_PROFILE_NAME,
+                    profile_name=profile,
                     region_name=self.settings.AWS_REGION,
                 )
             else:
                 session = boto3.Session(region_name=self.settings.AWS_REGION)
 
-        # Note: BedrockModel accepts either boto_session or region_name, not both.
         return BedrockModel(
             boto_session=session,
             model_id=self.settings.BEDROCK_MODEL_ID,
         )
+
+
+# Backward-compatibility alias for legacy code
+BedrockProvider = BedrockRuntimeProvider
 
 
 def get_model_provider(
@@ -84,7 +127,7 @@ def get_model_provider(
 
     Args:
         settings: Application settings. Defaults to cached get_settings().
-        boto_session: Optional pre-configured boto3.Session for BedrockProvider.
+        boto_session: Optional pre-configured boto3.Session for AWS providers.
 
     Returns:
         Configured ModelProvider instance.
@@ -95,14 +138,16 @@ def get_model_provider(
     resolved_settings = settings or get_settings()
     provider_name = resolved_settings.LEDGERGUARD_MODEL_PROVIDER
 
-    if provider_name == "openrouter":
+    if provider_name == "bedrock_mantle":
+        return BedrockMantleProvider(resolved_settings, session=boto_session)
+    elif provider_name == "openrouter":
         return OpenRouterProvider(resolved_settings)
-    elif provider_name == "bedrock":
-        return BedrockProvider(resolved_settings, session=boto_session)
+    elif provider_name in ("bedrock_runtime", "bedrock"):
+        return BedrockRuntimeProvider(resolved_settings, session=boto_session)
     else:
         raise ValueError(
             f"Unsupported model provider: '{provider_name}'. "
-            "Supported providers are 'openrouter' and 'bedrock'."
+            "Supported providers are 'bedrock_mantle', 'openrouter', and 'bedrock_runtime'."
         )
 
 

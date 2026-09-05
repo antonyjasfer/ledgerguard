@@ -16,13 +16,23 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Provider selection: 'openrouter' (development) or 'bedrock' (AWS production)
-    LEDGERGUARD_MODEL_PROVIDER: Literal["openrouter", "bedrock"] = Field(
-        default="openrouter",
+    # Provider selection: 'bedrock_mantle' (primary development),
+    # 'openrouter' (explicit alternative), or 'bedrock_runtime' (traditional Bedrock Runtime).
+    # 'bedrock' is maintained as a legacy alias for 'bedrock_runtime'.
+    LEDGERGUARD_MODEL_PROVIDER: Literal[
+        "bedrock_mantle", "openrouter", "bedrock_runtime", "bedrock"
+    ] = Field(
+        default="bedrock_mantle",
         description="Active model provider for LedgerGuard agent.",
     )
 
-    # OpenRouter settings (development provider)
+    # Bedrock Mantle settings (primary development provider)
+    BEDROCK_MANTLE_MODEL_ID: str = Field(
+        default="google.gemma-3-27b-it",
+        description="Model identifier for Amazon Bedrock Mantle.",
+    )
+
+    # OpenRouter settings (explicit alternative development provider)
     OPENROUTER_API_KEY: SecretStr | None = Field(
         default=None,
         description="API key for OpenRouter service.",
@@ -36,18 +46,22 @@ class Settings(BaseSettings):
         description="Base URL for OpenRouter API.",
     )
 
-    # AWS Bedrock settings (future AWS production provider)
+    # AWS settings (shared & traditional Bedrock Runtime provider)
     AWS_REGION: str = Field(
         default="us-east-1",
-        description="AWS Region for Amazon Bedrock runtime.",
+        description="AWS Region for Amazon Bedrock services.",
+    )
+    AWS_PROFILE: str | None = Field(
+        default="ledgerguard",
+        description="AWS credential profile name for local development.",
     )
     BEDROCK_MODEL_ID: str = Field(
         default="amazon.nova-lite-v1:0",
-        description="Model identifier for Amazon Bedrock.",
+        description="Model identifier for Amazon Bedrock Runtime.",
     )
     BEDROCK_PROFILE_NAME: str | None = Field(
         default="ledgerguard",
-        description="AWS credential profile name for local development.",
+        description="AWS credential profile name for Bedrock runtime.",
     )
 
 
