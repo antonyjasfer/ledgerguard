@@ -56,7 +56,7 @@ def _dict_to_invoice(data: dict) -> Invoice:
 
 
 @tool(
-    name="verify_invoice_arithmetic",
+    name="calculate_invoice_arithmetic",
     description=(
         "Verify whether invoice arithmetic is internally consistent using deterministic "
         "Decimal calculations. Checks line item subtotals (quantity * unit_price), subtotal "
@@ -64,7 +64,7 @@ def _dict_to_invoice(data: dict) -> Invoice:
         "and line items are available. Returns PASS, FAIL, or INSUFFICIENT_DATA."
     ),
 )
-def verify_invoice_arithmetic(invoice_data: str) -> str:
+def calculate_invoice_arithmetic(invoice_data: str) -> str:
     """Run deterministic arithmetic verification on a JSON-serialized invoice.
 
     Args:
@@ -80,7 +80,7 @@ def verify_invoice_arithmetic(invoice_data: str) -> str:
 
 
 @tool(
-    name="check_invoice_duplicates",
+    name="check_duplicate_invoice",
     description=(
         "Check whether a candidate invoice is a duplicate of any historical invoice. "
         "Returns CONFIRMED_DUPLICATE (same vendor and invoice number), POSSIBLE_DUPLICATE "
@@ -88,7 +88,7 @@ def verify_invoice_arithmetic(invoice_data: str) -> str:
         "duplicate payment risk."
     ),
 )
-def check_invoice_duplicates(invoice_data: str, historical_invoices: str) -> str:
+def check_duplicate_invoice(invoice_data: str, historical_invoices: str) -> str:
     """Run deterministic duplicate detection against historical records.
 
     Args:
@@ -112,7 +112,7 @@ def check_invoice_duplicates(invoice_data: str, historical_invoices: str) -> str
         "the vendor is new. Use this to assess vendor reliability and spending patterns."
     ),
 )
-def get_vendor_history_tool(vendor_id: str, historical_invoices: str) -> str:
+def get_vendor_history(vendor_id: str, historical_invoices: str) -> str:
     """Compute vendor history from historical invoice records.
 
     Args:
@@ -146,7 +146,7 @@ def get_vendor_history_tool(vendor_id: str, historical_invoices: str) -> str:
         "payment blocks. Returns pass/review/block status with specific violations."
     ),
 )
-def evaluate_invoice_policy_tool(
+def evaluate_invoice_policy(
     invoice_data: str,
     vendor_history_json: str,
     duplicate_result_json: str,
@@ -179,7 +179,7 @@ def evaluate_invoice_policy_tool(
         "Confirmed duplicates always produce CRITICAL risk."
     ),
 )
-def calculate_invoice_risk_tool(
+def calculate_invoice_risk(
     arithmetic_result_json: str,
     duplicate_result_json: str,
     vendor_history_json: str,
@@ -215,10 +215,19 @@ def calculate_invoice_risk_tool(
 
 
 # Ordered list of all LedgerGuard verification tools for Agent registration
+# Aliases for backward compatibility
+verify_invoice_arithmetic = calculate_invoice_arithmetic
+check_invoice_duplicates = check_duplicate_invoice
+get_vendor_history_tool = get_vendor_history
+evaluate_invoice_policy_tool = evaluate_invoice_policy
+calculate_invoice_risk_tool = calculate_invoice_risk
+
+
+# Ordered list of all LedgerGuard verification tools for Agent registration
 LEDGERGUARD_TOOLS = [
-    verify_invoice_arithmetic,
-    check_invoice_duplicates,
-    get_vendor_history_tool,
-    evaluate_invoice_policy_tool,
-    calculate_invoice_risk_tool,
+    calculate_invoice_arithmetic,
+    check_duplicate_invoice,
+    get_vendor_history,
+    evaluate_invoice_policy,
+    calculate_invoice_risk,
 ]

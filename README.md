@@ -60,6 +60,96 @@ In AP invoice verification, AI models reason over unstructured document context 
 6. **Policy Engine** (`app/tools/policy.py`, `app/models/policy.py`): Centralizes corporate AP policy rules (auto-approval limit <= $1,000, high-value ceiling >= $5,000, new vendor review, duplicate payment blocks). Preserves all triggered violations.
 7. **Risk Engine** (`app/tools/risk.py`): Computes composite risk score (0?100) from active risk factors, assigns severity levels (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), enforces a mandatory critical override for confirmed duplicates, and outputs recommended workflow actions (`AUTO_APPROVE`, `MANUAL_REVIEW`, `BLOCK`).
 
+## Phase 3 — Autonomous Verification Agent
+
+**Core Principle**:
+> *The LLM reasons over evidence, while deterministic tools verify financial facts.*
+
+In Phase 3, LedgerGuard connects the 5 deterministic verification tools from Phase 2 into an autonomous Strands Agent architecture with strict decision precedence, safe execution tracking, and a deterministic Decision Guard layer.
+
+### Architectural Principles
+- **No Financial Hallucination**: The LLM does not calculate financial truth. Deterministic tools establish financial facts.
+- **Autonomous Tool Selection**: The agent inspects candidate invoice data, determines necessary checks, and invokes deterministic tools dynamically.
+- **Evidence-Based Reasoning**: Decisions are synthesized from structured tool outputs. The agent cannot override or fabricate verification evidence.
+- **Deterministic Decision Guard**: A final safety enforcement layer validates the agent's proposed verdict against hard business rules. Even if the LLM hallucinates an auto-approval, the guard intercepts and enforces safety rules (e.g., confirmed duplicates and critical risk always force a `BLOCK`).
+
+### Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Input["Invoice Verification Request"]
+        Inv["Candidate Invoice"]
+        Hist["Historical Invoices"]
+        Pol["AP Policy Config"]
+    end
+
+    subgraph Agent["Strands Agent (LLM Reasoning)"]
+        SP["System Prompt
+Precedence Rules"]
+        LLM["Bedrock Mantle
+Google Gemma 3 27B IT"]
+    end
+
+    subgraph Tools["Deterministic Strands @tool Wrappers"]
+        T1["calculate_invoice_arithmetic"]
+        T2["check_duplicate_invoice"]
+        T3["get_vendor_history"]
+        T4["evaluate_invoice_policy"]
+        T5["calculate_invoice_risk"]
+    end
+
+    subgraph Decision["Decision & Safety Layer"]
+        DE["Decision Engine
+synthesize_decision()"]
+        DG["Decision Guard
+validate_agent_decision()"]
+    end
+
+    Input --> Agent
+    Agent -->|"Autonomous Tool Use"| Tools
+    Tools -->|"Structured JSON Evidence"| Agent
+    Agent -->|"Proposed Recommendation"| DE
+    DE -->|"Synthesized Verdict"| DG
+    DG -->|"Final Safe Decision"| Output["VerificationDecision
+AUTO_APPROVE / MANUAL_REVIEW / BLOCK / ESCALATE"]
+```
+
+### Registered Verification Tools
+1. **`calculate_invoice_arithmetic`**: Validates line-item math (`quantity * unit_price`), subtotal accumulation, tax, discount, and grand total consistency.
+2. **`check_duplicate_invoice`**: Identifies `CONFIRMED_DUPLICATE` (same vendor + invoice number) and `POSSIBLE_DUPLICATE` (same vendor + total within 7 days).
+3. **`get_vendor_history`**: Aggregates vendor spend volume, historical transaction counts, and identifies new vendors.
+4. **`evaluate_invoice_policy`**: Evaluates corporate limits (auto-approval ceiling <= $1,000, high-value ceiling >= $5,000, new vendor review, duplicate payment block).
+5. **`calculate_invoice_risk`**: Computes composite 0-100 risk score, factor weights, risk levels (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), and recommended actions.
+
+### Decision Precedence Rules
+1. **CONFIRMED_DUPLICATE** -> **`BLOCK`**
+2. **Policy Block** -> **`BLOCK`**
+3. **CRITICAL Risk** -> **`BLOCK`**
+4. **HIGH Risk** -> **`MANUAL_REVIEW`**
+5. **Policy Requires Review** -> **`MANUAL_REVIEW`**
+6. **MEDIUM Risk** -> **`MANUAL_REVIEW`**
+7. **Insufficient Evidence** -> **`MANUAL_REVIEW`**
+8. **LOW Risk + All Checks Passed** -> **`AUTO_APPROVE`**
+
+### Decision Guard Enforcement
+The Decision Guard acts as a circuit-breaker against model hallucinations. It **never downgrades safety**:
+- Confirmed duplicate + Agent proposes `AUTO_APPROVE` -> **Overridden to `BLOCK`**
+- Policy block + Agent proposes `MANUAL_REVIEW` -> **Overridden to `BLOCK`**
+- Critical risk + Agent proposes `AUTO_APPROVE` -> **Overridden to `BLOCK`**
+- Arithmetic `FAIL` + Agent proposes `AUTO_APPROVE` -> **Overridden to `MANUAL_REVIEW`**
+- `INSUFFICIENT_DATA` + Agent proposes `AUTO_APPROVE` -> **Overridden to `MANUAL_REVIEW`**
+
+### Observability & Audit Trail
+Every verification workflow run records safe execution metadata (`ExecutionMetadata`):
+- `agent_run_id`: Unique trace identifier
+- `provider`: Model provider (e.g., `bedrock_mantle`)
+- `model`: Model identifier (`google.gemma-3-27b-it`)
+- `tools_called`: Ordered list of tools actually invoked
+- `decision`: Final verified decision
+- `risk_level`: Final assessed risk level
+- `was_overridden` & `override_reason`: Audit trail of any guard interventions
+- *Security*: Excludes all secrets, API keys, credentials, bearer tokens, and sensitive document payloads.
+
 ## Model Strategy & AWS Status
 
 - **Primary Development Provider**: Amazon Bedrock Mantle
