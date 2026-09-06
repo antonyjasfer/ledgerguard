@@ -26,3 +26,4 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+markers = ["integration: mark test as requiring live AWS integration"]

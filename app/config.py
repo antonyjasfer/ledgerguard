@@ -64,6 +64,39 @@ class Settings(BaseSettings):
         description="AWS credential profile name for Bedrock runtime.",
     )
 
+    # Phase 4 AWS Data Layer settings
+    LEDGERGUARD_S3_BUCKET: str | None = Field(
+        default=None,
+        description="S3 bucket name for invoice document storage.",
+    )
+    LEDGERGUARD_DYNAMODB_TABLE: str = Field(
+        default="ledgerguard-invoices",
+        description="DynamoDB table name for invoice records and audit trail.",
+    )
+    LEDGERGUARD_SQS_QUEUE_URL: str | None = Field(
+        default=None,
+        description="SQS queue URL for background invoice processing jobs.",
+    )
+    OPENROUTER_SECRET_NAME: str = Field(
+        default="ledgerguard/openrouter-key",
+        description="AWS Secrets Manager secret name for OpenRouter API key.",
+    )
+    SQS_VISIBILITY_TIMEOUT: int = Field(
+        default=300,
+        ge=1,
+        le=43200,
+        description="SQS message visibility timeout in seconds.",
+    )
+    SQS_MAX_ATTEMPTS: int = Field(
+        default=3,
+        ge=1,
+        description="Maximum processing attempts before marking job as failed.",
+    )
+    LEDGERGUARD_STORAGE_MODE: Literal["aws", "local"] = Field(
+        default="aws",
+        description="Storage execution mode: 'aws' or 'local'.",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:

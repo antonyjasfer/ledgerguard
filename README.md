@@ -150,6 +150,182 @@ Every verification workflow run records safe execution metadata (`ExecutionMetad
 - `was_overridden` & `override_reason`: Audit trail of any guard interventions
 - *Security*: Excludes all secrets, API keys, credentials, bearer tokens, and sensitive document payloads.
 
+
+## Phase 4 ? AWS Data Layer + Background Processing
+
+In Phase 4, LedgerGuard is upgraded from a local verification agent to an **AWS-backed background processing system**. Source invoice documents are stored in Amazon S3, processing jobs are queued via Amazon SQS, and verification results along with immutable audit trails are persisted in Amazon DynamoDB.
+
+### Core Principle
+> **THE MODEL REASONS. THE TOOLS VERIFY. AWS PROVIDES DURABLE STORAGE AND BACKGROUND EXECUTION.**
+
+The Strands Agent and deterministic tools never manage AWS infrastructure directly; they operate through clean service abstractions.
+
+### Architecture Diagram
+
+```mermaid
+flowchart TD
+    Client["AP Client / Upstream Ingestion"]
+    S3[("Amazon S3
+invoices/{id}/{filename}")]
+    SQS["Amazon SQS
+Processing Queue"]
+    Worker["LedgerGuard Worker
+InvoiceProcessor"]
+    Agent["Strands Agent
+Autonomous Reasoning"]
+    Tools["Deterministic Tools
+Arithmetic / Duplicates / Policy / Risk"]
+    Guard["Decision Guard
+Circuit Breaker"]
+    DDB[("Amazon DynamoDB
+PK: INVOICE#{id}
+SK: METADATA | EVENT#{ts}")]
+    SM["AWS Secrets Manager
+(App Secrets)"]
+
+    Client -->|"1. Upload Document"| S3
+    Client -->|"2. Enqueue Job"| SQS
+    SQS -->|"3. Poll Message"| Worker
+    Worker -->|"4. Verify Existence"| S3
+    Worker -->|"5. Reason & Select Tools"| Agent
+    Agent -->|"6. Compute Evidence"| Tools
+    Tools -->|"7. Return Results"| Agent
+    Agent -->|"8. Propose Decision"| Guard
+    Guard -->|"9. Enforce Hard Safety"| Worker
+    Worker -->|"10. Persist State & Audit"| DDB
+    Worker -->|"11. Ack / Delete Message"| SQS
+    SM -.->|"App Keys"| Worker
+```
+
+### Key Components
+
+1. **Service Interfaces (`app/services/interfaces.py`)**:
+   - `DocumentStore`: Document storage contract (upload, download, exists, delete).
+   - `InvoiceRepository`: Persistent records, lifecycle states, and chronological audit event logging.
+   - `JobQueue`: Asynchronous message publishing, polling with visibility timeout, and acknowledgment.
+   - `SecretProvider`: Application secret management.
+
+2. **Amazon S3 Integration (`app/services/s3.py`)**:
+   - Stores raw invoice documents under sanitized, traversal-safe keys: `invoices/{invoice_id}/{filename}`.
+   - Path traversal prevention (`..`, special characters stripped).
+
+3. **Amazon DynamoDB Integration (`app/services/dynamodb.py`)**:
+   - Single-table design:
+     - `PK = INVOICE#{invoice_id}`, `SK = METADATA` for invoice entities and verification verdicts.
+     - `PK = INVOICE#{invoice_id}`, `SK = EVENT#{timestamp}#{event_id}` for immutable audit trail events.
+   - Strict serialization layer converting Decimals, Enums, dates, and Pydantic models safely without float precision loss.
+   - Idempotent writes preventing state corruption on repeated execution.
+
+4. **Amazon SQS Integration (`app/services/sqs.py`)**:
+   - Job payloads contain only safe metadata (`job_id`, `invoice_id`, `s3_bucket`, `s3_key`). Raw documents and heavy JSON are excluded.
+   - Strict transactional acknowledgment: messages are deleted from SQS **only after** DynamoDB persistence succeeds.
+
+5. **AWS Secrets Manager Integration (`app/services/secrets.py`)**:
+   - Provider-aware secret retrieval: only queries Secrets Manager when provider is explicitly `openrouter`.
+   - Never queries Secrets Manager when using Bedrock Mantle.
+   - AWS credentials remain managed exclusively via the standard AWS credential chain.
+
+6. **Background Worker (`app/worker/processor.py` & `app/worker/main.py`)**:
+   - `InvoiceProcessor` orchestrates message reception, document checks, verification, Decision Guard validation, durable state persistence, and SQS deletion.
+   - Idempotency guard: jobs for invoices already in a terminal state (`AUTO_APPROVED`, `MANUAL_REVIEW`, `BLOCKED`) are safely deduplicated and acknowledged without re-running.
+   - Safe logging: logs contain only safe operational metadata (`job_id`, `invoice_id`, status, decision, error category). Raw document bytes, base64 strings, and credentials are never logged.
+
+### Processing Lifecycle States
+
+Invoice processing progresses through the centralized state machine (`app/models/state.py`):
+- `RECEIVED` -> Initial ingestion state
+- `QUEUED` -> Job published to SQS
+- `PROCESSING` -> Worker actively verifying invoice
+- `VERIFIED` -> Tools and Decision Guard completed
+- `AUTO_APPROVED` -> Clean low-risk invoice approved for payment (Terminal)
+- `MANUAL_REVIEW` -> Policy violation, missing data, or medium/high risk requiring human AP review (Terminal)
+- `BLOCKED` -> Confirmed duplicate or critical policy/risk violation (Terminal)
+- `FAILED` -> System error, missing S3 artifact, or unhandled failure
+
+### AWS Resource Creation Policy
+
+> [!IMPORTANT]
+> **Zero Automatic Infrastructure Creation**: The LedgerGuard application and worker will **NEVER** auto-create S3 buckets, DynamoDB tables, or SQS queues at startup. Infrastructure must be provisioned explicitly.
+
+To provision development AWS resources:
+```powershell
+python scripts/provision_dev.py --confirm
+```
+
+Required AWS resources:
+- S3 Bucket: `LEDGERGUARD_S3_BUCKET`
+- DynamoDB Table: `LEDGERGUARD_DYNAMODB_TABLE` (default: `ledgerguard-invoices`, `PAY_PER_REQUEST` billing)
+- SQS Queue: `LEDGERGUARD_SQS_QUEUE_URL` (default: `ledgerguard-invoice-jobs`)
+- Secrets Manager Secret (Optional): `OPENROUTER_SECRET_NAME`
+
+### Least-Privilege IAM Policy
+
+For production deployments, the worker execution role requires only the following minimal permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3DocumentAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::your-ledgerguard-invoices-bucket/*"
+    },
+    {
+      "Sid": "DynamoDBTableAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:Query"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:*:table/ledgerguard-invoices"
+    },
+    {
+      "Sid": "SQSJobQueueAccess",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:SendMessage",
+        "sqs:ChangeMessageVisibility"
+      ],
+      "Resource": "arn:aws:sqs:us-east-1:*:ledgerguard-invoice-jobs"
+    },
+    {
+      "Sid": "SecretsManagerReadAccess",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:us-east-1:*:secret:ledgerguard/*"
+    }
+  ]
+}
+```
+
+### Testing Strategy
+
+- **Offline Unit Tests**: All unit tests run fully offline without requiring AWS credentials or network calls:
+  ```powershell
+  pytest tests -v
+  ```
+- **Opt-in Live Integration Tests**: Require configured AWS resources and are skipped by default:
+  ```powershell
+  $env:LEDGERGUARD_RUN_AWS_INTEGRATION = "true"
+  pytest tests/integration -v
+  ```
+- **Live AWS End-to-End Pipeline Script**:
+  ```powershell
+  python scripts/aws_e2e_test.py
+  ```
+
 ## Model Strategy & AWS Status
 
 - **Primary Development Provider**: Amazon Bedrock Mantle
