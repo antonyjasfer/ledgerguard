@@ -326,6 +326,132 @@ For production deployments, the worker execution role requires only the followin
   python scripts/aws_e2e_test.py
   ```
 
+
+## Phase 5 ? Live AWS Integration + Document Ingestion + Human Review API
+
+In Phase 5, LedgerGuard upgrades from background processing infrastructure to a fully functional, cloud-backed Accounts Payable verification backend. It integrates live AWS services (Amazon S3, Amazon SQS, Amazon DynamoDB, and Amazon Bedrock Mantle), a production FastAPI application with comprehensive validation, request correlation, and a safe Human Review API.
+
+### Core Principle
+> **THE MODEL REASONS. THE TOOLS VERIFY. THE DECISION GUARD PROTECTS. AWS PROVIDES DURABLE EXECUTION AND STATE.**
+
+### End-to-End Flow
+
+```mermaid
+flowchart TD
+    Client["Client / AP System"]
+    API["LedgerGuard FastAPI
+POST /invoices
+POST /invoices/{id}/document"]
+    S3[("Amazon S3
+Document Storage")]
+    SQS["Amazon SQS
+Job Queue"]
+    Worker["LedgerGuard Worker
+InvoiceProcessor"]
+    Agent["Strands Agent
+Bedrock Mantle (Gemma 3 27B IT)"]
+    Tools["Deterministic Tools
+Arithmetic / Duplicates / Policy / Risk"]
+    Guard["Decision Guard
+Safety Enforcement"]
+    DDB[("Amazon DynamoDB
+State & Audit Trail")]
+    ReviewAPI["Human Review API
+POST /invoices/{id}/review"]
+    Reviewer["Human AP Auditor"]
+
+    Client -->|"1. Submit Invoice JSON"| API
+    Client -->|"2. Attach PDF Document"| API
+    API -->|"Store PDF Document"| S3
+    API -->|"Persist Record (QUEUED)"| DDB
+    API -->|"Enqueue Job"| SQS
+    SQS -->|"3. Poll Job"| Worker
+    Worker -->|"4. Load Invoice & Document Key"| DDB
+    Worker -->|"Verify Document Exists"| S3
+    Worker -->|"5. Reason & Select Tools"| Agent
+    Agent -->|"6. Verify Financial Facts"| Tools
+    Tools -->|"Evidence Results"| Agent
+    Agent -->|"7. Propose Decision"| Guard
+    Guard -->|"8. Enforce Hard Safety"| Worker
+    Worker -->|"9. Persist Decision & Audit Trail"| DDB
+    Worker -->|"10. Delete Acknowledged Message"| SQS
+    Reviewer -->|"11. Inspect Status & Audit"| API
+    Reviewer -->|"12. Record Review Verdict"| ReviewAPI
+    ReviewAPI -->|"13. Update State & Audit Event"| DDB
+```
+
+### API Endpoints
+
+All endpoints are built with FastAPI, strictly typed schemas, and comprehensive input validation:
+
+| Method | Path | Description | Authentication |
+|---|---|---|---|
+| `GET` | `/health` | Liveness check returning service status | Unauthenticated |
+| `GET` | `/ready` | Readiness probe verifying AWS resource availability | Unauthenticated |
+| `POST` | `/invoices` | Ingest structured invoice data, check idempotency, persist to DynamoDB, and enqueue processing job to SQS | Required |
+| `POST` | `/invoices/{invoice_id}/document` | Upload invoice document (PDF/PNG/JPEG), validate size (<=10MB), sanitize filename, store in S3, link S3 key, record audit event | Required |
+| `GET` | `/invoices/{invoice_id}` | Query current invoice status, decision, risk tier, risk score, and human review verdict | Required |
+| `GET` | `/invoices/{invoice_id}/audit` | Retrieve complete, chronological immutable audit trail | Required |
+| `POST` | `/invoices/{invoice_id}/review` | Human reviewer intervention on invoices requiring manual review | Required |
+| `GET` | `/docs` | Interactive Swagger / OpenAPI documentation | Unauthenticated |
+| `GET` | `/openapi.json` | OpenAPI 3.1 JSON specification | Unauthenticated |
+
+### Human Review Workflow
+
+When automated verification flags policy violations, insufficient documentation, or elevated risk, the invoice transitions to `MANUAL_REVIEW`:
+1. **Preservation of Automated Findings**: The automated decision (`original_decision`), risk score, and verification details are permanently preserved and never overwritten.
+2. **Strict Precondition**: Only invoices with `processing_status == MANUAL_REVIEW` can be reviewed. Attempting to review invoices in `AUTO_APPROVED`, `BLOCKED`, `QUEUED`, or `PROCESSING` returns HTTP 409 Conflict.
+3. **Audit Trail**: Every human review action records a `HUMAN_REVIEW_RECORDED` audit event with the reviewer identity, action, review timestamp, and comment.
+4. **Controlled Transition**: Action `APPROVE` sets state to `AUTO_APPROVED`; `REJECT` sets state to `BLOCKED`; `ESCALATE` retains `MANUAL_REVIEW` for higher-tier approval.
+
+### Security Model
+
+- **Authentication Boundary**: Protected endpoints require API authentication via `X-API-Key` header or `Authorization: Bearer <key>`.
+- **Masked Error Responses**: Unhandled exceptions, AWS error payloads, and internal stack traces are caught by API middleware and masked. Safe structured errors are returned with a unique `X-Request-ID`.
+- **Safe Path & Document Handling**: File uploads sanitize filenames using `os.path.basename` and regex stripping of unsafe characters, preventing path traversal attacks.
+- **Upload Limits**: File uploads exceeding `MAX_DOCUMENT_SIZE_BYTES` (default: 10MB) are rejected with HTTP 413 Payload Too Large.
+- **Strict Decimal Precision**: Monetary numbers are validated as strings or integers and parsed into `Decimal`. Floating-point values are rejected with HTTP 422 to prevent rounding exploits.
+- **Credential Hygiene**: Zero hardcoded credentials. AWS credentials use the standard AWS credential chain (`~/.aws/credentials`, IAM roles, or environment variables).
+
+### Known Limitations
+
+> [!IMPORTANT]
+> - **OCR Is Not Implemented**: LedgerGuard does not currently extract text from raw invoice images or scanned PDFs via OCR.
+> - **Structured Data Dependency**: Source PDF documents are stored durably in Amazon S3 for compliance and manual auditor reference; however, automated verification and AI reasoning currently operate on the structured JSON data provided at ingestion (`POST /invoices`).
+> - **No Direct PDF Parsing**: Verification tools analyze the structured financial fields (line items, tax, vendor, totals). Binary PDF parsing will be introduced in future phases.
+
+### Quickstart & Startup Commands (Windows / PowerShell)
+
+#### 1. Start Local API Server
+```powershell
+# In virtual environment:
+uvicorn app.api.main:app --reload --port 8000
+```
+Interactive API docs are available at `http://localhost:8000/docs`.
+
+#### 2. Start Background Worker
+```powershell
+python -m app.worker.main
+```
+
+#### 3. Run Offline Test Suite (Zero AWS calls, no cost)
+```powershell
+pytest tests -v
+```
+
+#### 4. Run Live AWS Integration Tests (Requires AWS access)
+```powershell
+$env:LEDGERGUARD_RUN_AWS_INTEGRATION = "true"
+pytest tests/integration -v
+```
+
+#### 5. Run Live End-to-End Pipeline Verification
+```powershell
+$env:PYTHONPATH = "."
+$env:LEDGERGUARD_RUN_AWS_INTEGRATION = "true"
+python scripts/phase5_e2e.py
+```
+
 ## Model Strategy & AWS Status
 
 - **Primary Development Provider**: Amazon Bedrock Mantle

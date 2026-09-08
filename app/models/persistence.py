@@ -90,6 +90,34 @@ class InvoiceRecord(BaseModel):
         default=None,
         description="Unique idempotency token (e.g., job_id or invoice_id+version)",
     )
+    customer_name: str | None = Field(
+        default=None,
+        description="Bill-to customer name",
+    )
+    line_items: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Serialized line items",
+    )
+    original_decision: AgentDecision | None = Field(
+        default=None,
+        description="Original automated decision before human review",
+    )
+    review_decision: str | None = Field(
+        default=None,
+        description="Human review verdict (APPROVE, REJECT, REQUEST_INFORMATION)",
+    )
+    reviewer: str | None = Field(
+        default=None,
+        description="Identity of human reviewer",
+    )
+    review_timestamp: str | None = Field(
+        default=None,
+        description="ISO timestamp when human review occurred",
+    )
+    review_comment: str | None = Field(
+        default=None,
+        description="Reviewer rationale or audit comment",
+    )
 
     @property
     def partition_key(self) -> str:
@@ -122,6 +150,8 @@ class InvoiceRecord(BaseModel):
             cleaned["decision"] = AgentDecision(cleaned["decision"])
         if "risk_level" in cleaned and cleaned["risk_level"] is not None:
             cleaned["risk_level"] = RiskLevel(cleaned["risk_level"])
+        if "original_decision" in cleaned and cleaned["original_decision"] is not None:
+            cleaned["original_decision"] = AgentDecision(cleaned["original_decision"])
         return cls(**cleaned)
 
     @classmethod
@@ -145,9 +175,42 @@ class InvoiceRecord(BaseModel):
             tax=invoice.tax,
             discount=invoice.discount,
             total=invoice.total,
+            customer_name=invoice.customer_name,
+            line_items=[item.model_dump() for item in invoice.line_items],
             document_s3_key=document_s3_key,
             processing_status=status,
             created_at=now,
             updated_at=now,
             idempotency_key=idempotency_key,
+        )
+
+    def to_invoice(self) -> Invoice:
+        """Reconstruct Invoice domain model from InvoiceRecord."""
+        from datetime import date
+        from app.models.invoice import LineItem
+        items = []
+        for it in self.line_items:
+            try:
+                items.append(LineItem(**it))
+            except Exception:
+                pass
+        inv_date = self.invoice_date
+        if isinstance(inv_date, str):
+            try:
+                inv_date = date.fromisoformat(inv_date.split("T")[0])
+            except Exception:
+                inv_date = date.today()
+        return Invoice(
+            invoice_id=self.invoice_id,
+            invoice_number=self.invoice_number,
+            vendor_id=self.vendor_id,
+            vendor_name=self.vendor_name,
+            customer_name=self.customer_name or "Global Enterprise Inc",
+            invoice_date=inv_date,
+            currency=self.currency,
+            subtotal=self.subtotal,
+            tax=self.tax,
+            discount=self.discount,
+            total=self.total,
+            line_items=items,
         )

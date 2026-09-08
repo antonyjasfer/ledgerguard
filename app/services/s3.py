@@ -41,19 +41,26 @@ def sanitize_id(identifier: str) -> str:
     return cleaned or "default"
 
 
+_UNSET = object()
+
+
 class S3DocumentStore(DocumentStore):
     """Document store backed by Amazon S3."""
 
     def __init__(
         self,
-        bucket_name: str | None = None,
+        bucket_name: Any = _UNSET,
         region_name: str | None = None,
         profile_name: str | None = None,
         s3_client: Any = None,
         settings: Settings | None = None,
     ):
         resolved_settings = settings or get_settings()
-        self.bucket_name = bucket_name or resolved_settings.LEDGERGUARD_S3_BUCKET
+        self.bucket_name = (
+            resolved_settings.LEDGERGUARD_S3_BUCKET
+            if bucket_name is _UNSET
+            else bucket_name
+        )
         self.region_name = region_name or resolved_settings.AWS_REGION
         self.profile_name = profile_name if profile_name is not None else resolved_settings.AWS_PROFILE
 

@@ -178,6 +178,11 @@ class InvoiceProcessor:
 
         # 5. Resolve Invoice Data
         resolved_invoice = invoice_data
+        if resolved_invoice is None and existing_record is not None:
+            try:
+                resolved_invoice = existing_record.to_invoice()
+            except Exception as exc:
+                logger.warning("Could not reconstruct Invoice from existing record %s: %s", invoice_id, exc)
         if resolved_invoice is None:
             logger.error(
                 "No invoice data available for processing. job_id=%s, invoice_id=%s",

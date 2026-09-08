@@ -14,12 +14,15 @@ from app.models.job import ProcessingJob
 from app.services.interfaces import JobQueue
 
 
+_UNSET = object()
+
+
 class SQSJobQueue(JobQueue):
     """Background job queue backed by Amazon SQS."""
 
     def __init__(
         self,
-        queue_url: str | None = None,
+        queue_url: Any = _UNSET,
         region_name: str | None = None,
         profile_name: str | None = None,
         sqs_client: Any = None,
@@ -28,7 +31,11 @@ class SQSJobQueue(JobQueue):
         settings: Settings | None = None,
     ):
         resolved_settings = settings or get_settings()
-        self.queue_url = queue_url or resolved_settings.LEDGERGUARD_SQS_QUEUE_URL
+        self.queue_url = (
+            resolved_settings.LEDGERGUARD_SQS_QUEUE_URL
+            if queue_url is _UNSET
+            else queue_url
+        )
         self.region_name = region_name or resolved_settings.AWS_REGION
         self.profile_name = profile_name if profile_name is not None else resolved_settings.AWS_PROFILE
         self.visibility_timeout = visibility_timeout or resolved_settings.SQS_VISIBILITY_TIMEOUT

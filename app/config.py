@@ -97,6 +97,16 @@ class Settings(BaseSettings):
         description="Storage execution mode: 'aws' or 'local'.",
     )
 
+    # Phase 5 API & Document settings
+    LEDGERGUARD_API_KEY: SecretStr | None = Field(
+        default=None,
+        description="API key for securing LedgerGuard REST API endpoints.",
+    )
+    MAX_DOCUMENT_SIZE_BYTES: int = Field(
+        default=10 * 1024 * 1024,
+        description="Maximum allowed document upload size in bytes (default: 10MB).",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
