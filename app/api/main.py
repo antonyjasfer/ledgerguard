@@ -8,10 +8,11 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.errors import register_error_handlers
 from app.api.middleware import RequestCorrelationMiddleware
-from app.api.routes import health, invoices
+from app.api.routes import dashboard, health, invoices
 from app.config import get_settings
 
 logger = logging.getLogger("ledgerguard.api")
@@ -50,11 +51,21 @@ def create_app() -> FastAPI:
     # 1. Register Observability & Correlation Middleware
     app.add_middleware(RequestCorrelationMiddleware)
 
+    # 1b. Register CORS Middleware for Web Frontend
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:4173", "http://127.0.0.1:4173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     # 2. Register Structured Domain & Validation Error Handlers
     register_error_handlers(app)
 
     # 3. Mount Route Endpoints
     app.include_router(health.router)
+    app.include_router(dashboard.router)
     app.include_router(invoices.router)
 
     return app

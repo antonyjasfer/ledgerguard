@@ -5,7 +5,7 @@ cloud providers (boto3) and enables offline deterministic testing.
 """
 
 from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import Any, Sequence
 
 from app.models.audit import AuditEvent
 from app.models.decision import AgentDecision
@@ -86,6 +86,32 @@ class InvoiceRepository(ABC):
     @abstractmethod
     def is_already_processed(self, invoice_id: str) -> bool:
         """Check if an invoice has already reached a completed/terminal state."""
+        pass
+    @abstractmethod
+    def list_records(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        status: ProcessingState | None = None,
+        vendor_id: str | None = None,
+        search: str | None = None,
+    ) -> list[InvoiceRecord]:
+        """List persisted invoice records with optional filtering."""
+        pass
+
+    @abstractmethod
+    def count_records(
+        self,
+        status: ProcessingState | None = None,
+        vendor_id: str | None = None,
+        search: str | None = None,
+    ) -> int:
+        """Count records matching criteria."""
+        pass
+
+    @abstractmethod
+    def get_dashboard_stats(self) -> dict[str, Any]:
+        """Aggregate high-level invoice processing statistics and metrics."""
         pass
 
 

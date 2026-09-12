@@ -149,3 +149,50 @@ class ErrorResponse(BaseModel):
     message: str = Field(..., description="Human-readable error explanation")
     request_id: str | None = Field(default=None, description="Correlation request identifier")
     details: dict[str, Any] = Field(default_factory=dict, description="Additional non-sensitive error details")
+
+
+class DashboardStatsResponse(BaseModel):
+    """Aggregated processing and risk statistics for the operations dashboard."""
+
+    total_invoices: int = Field(..., description="Total invoices ingested")
+    pending_invoices: int = Field(..., description="Invoices currently in non-terminal states")
+    processed_invoices: int = Field(..., description="Invoices that have completed verification")
+    auto_approved_count: int = Field(..., description="Invoices automatically approved")
+    manual_review_count: int = Field(..., description="Invoices routed to human review")
+    blocked_count: int = Field(..., description="Invoices blocked by Decision Guard or Agent")
+    total_amount_usd: float = Field(..., description="Total cumulative invoice amount in USD")
+    average_risk_score: float = Field(..., description="Mean risk score across invoices")
+    auto_approval_rate_pct: float = Field(..., description="Percentage of processed invoices auto-approved")
+    by_status: dict[str, int] = Field(default_factory=dict, description="Counts keyed by lifecycle state")
+    by_decision: dict[str, int] = Field(default_factory=dict, description="Counts keyed by decision verdict")
+    by_risk_level: dict[str, int] = Field(default_factory=dict, description="Counts keyed by risk level")
+
+
+class InvoiceListItemResponse(BaseModel):
+    """Summary representation of an invoice for listing and table views."""
+
+    invoice_id: str
+    invoice_number: str
+    vendor_id: str
+    vendor_name: str
+    invoice_date: str
+    currency: str
+    total: Decimal | None
+    processing_status: str
+    decision: str | None
+    risk_level: str | None
+    risk_score: int | None
+    created_at: str
+    updated_at: str
+    document_s3_key: str | None = None
+    original_decision: str | None = None
+    review_decision: str | None = None
+
+
+class InvoiceListResponse(BaseModel):
+    """Paginated collection of invoice list items."""
+
+    items: list[InvoiceListItemResponse]
+    total: int
+    limit: int
+    offset: int

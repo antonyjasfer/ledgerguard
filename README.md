@@ -404,7 +404,41 @@ When automated verification flags policy violations, insufficient documentation,
 3. **Audit Trail**: Every human review action records a `HUMAN_REVIEW_RECORDED` audit event with the reviewer identity, action, review timestamp, and comment.
 4. **Controlled Transition**: Action `APPROVE` sets state to `AUTO_APPROVED`; `REJECT` sets state to `BLOCKED`; `ESCALATE` retains `MANUAL_REVIEW` for higher-tier approval.
 
-### Security Model
+#
+## Phase 6 ?" Hackathon Web Application & Demo Experience
+
+LedgerGuard provides a full-featured, dark-mode web application and interactive operations dashboard built with **React**, **Vite**, and **TypeScript**.
+
+### Key Frontend Capabilities
+- **Executive Operations Dashboard**: Displays real-time invoice volume, auto-approval throughput, manual review queues, blocked invoice counts, and aggregate financial totals directly from Amazon DynamoDB.
+- **Invoice Directory**: Real-time searchable and filterable table supporting status filtering, pagination, and instant detail inspection.
+- **Verification Evidence Panel**: Visualizes structured findings from all 5 deterministic verification tools (Arithmetic validation, Duplicate Detection, Vendor History, Policy Compliance, and Risk Engine).
+- **Decision Guard Safety Visualizer**: Explicitly displays the Agent Proposed Decision alongside the Decision Guard protected verdict, highlighting safety overrides when hard business boundaries are enforced.
+- **Human-in-the-Loop Review Workflow**: Allows AP auditors to review routed exceptions, choose an audit action (APPROVE, REJECT, REQUEST_INFORMATION), and record audit rationales while preserving the original automated decision.
+- **Immutable Audit Timeline**: Displays chronological events (JOB_QUEUED, DOCUMENT_RECEIVED, PROCESSING_STARTED, TOOL_EXECUTED, DECISION_GUARDED, HUMAN_REVIEW_RECORDED) recorded in DynamoDB.
+- **Amazon S3 Document Attachments**: Upload and associate documents stored in Amazon S3. *(Transparency Note: Documents are stored in Amazon S3 for audit and manual inspection. OCR and PDF text extraction are not implemented.)*
+
+### Running the Full Application
+
+1. **Backend Server**:
+   `powershell
+   .\.venv\Scripts\python.exe -m uvicorn app.api.main:app --host 127.0.0.1 --port 8000
+   `
+
+2. **Frontend Development Server**:
+   `powershell
+   cd frontend
+   npm run dev
+   `
+   Open http://127.0.0.1:5173/ in your browser.
+
+3. **Seeding Synthetic Demo Scenarios**:
+   `powershell
+   .\.venv\Scripts\python.exe scripts/seed_demo.py --seed
+   `
+   See [docs/demo-runbook.md](docs/demo-runbook.md) for full walkthrough and [docs/video-script.md](docs/video-script.md) for presentation script.
+
+## Security Model
 
 - **Authentication Boundary**: Protected endpoints require API authentication via `X-API-Key` header or `Authorization: Bearer <key>`.
 - **Masked Error Responses**: Unhandled exceptions, AWS error payloads, and internal stack traces are caught by API middleware and masked. Safe structured errors are returned with a unique `X-Request-ID`.

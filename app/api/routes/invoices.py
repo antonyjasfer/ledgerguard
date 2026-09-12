@@ -27,6 +27,8 @@ from app.api.schemas import (
     InvoiceCreateRequest,
     InvoiceCreateResponse,
     InvoiceStatusResponse,
+    InvoiceListItemResponse,
+    InvoiceListResponse,
 )
 from app.config import Settings
 from app.models.audit import AuditEvent, AuditEventType
@@ -428,4 +430,75 @@ async def submit_human_review(
         review_timestamp=now_iso,
         review_comment=payload.comment,
         status=record.processing_status.value,
+    )
+
+@router.get(
+    "",
+    response_model=InvoiceListResponse,
+    summary="List invoices",
+    description="Query persisted invoice records with search, status filtering, and pagination.",
+)
+async def list_invoices(
+    request: Request,
+    repository: Annotated[InvoiceRepository, Depends(get_invoice_repository)],
+    _api_key: Annotated[str | None, Depends(require_api_key)],
+    limit: int = 50,
+    offset: int = 0,
+    status: ProcessingState | None = None,
+    vendor_id: str | None = None,
+    search: str | None = None,
+) -> InvoiceListResponse:
+    req_id = getattr(request.state, "request_id", "unknown")
+    clamped_limit = max(1, min(limit, 100))
+    clamped_offset = max(0, offset)
+    logger.info(
+        "Listing invoices. limit=%d, offset=%d, status=%s, vendor_id=%s, search=%s, request_id=%s",
+        clamped_limit,
+        clamped_offset,
+        status.value if status else None,
+        vendor_id,
+        search,
+        req_id,
+    )
+
+    records = repository.list_records(
+        limit=clamped_limit,
+        offset=clamped_offset,
+        status=status,
+        vendor_id=vendor_id,
+        search=search,
+    )
+    total_count = repository.count_records(
+        status=status,
+        vendor_id=vendor_id,
+        search=search,
+    )
+
+    items = [
+        InvoiceListItemResponse(
+            invoice_id=r.invoice_id,
+            invoice_number=r.invoice_number,
+            vendor_id=r.vendor_id,
+            vendor_name=r.vendor_name,
+            invoice_date=r.invoice_date,
+            currency=r.currency,
+            total=r.total,
+            processing_status=r.processing_status.value,
+            decision=r.decision.value if r.decision else None,
+            risk_level=r.risk_level.value if r.risk_level else None,
+            risk_score=r.risk_score,
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+            document_s3_key=r.document_s3_key,
+            original_decision=r.original_decision.value if r.original_decision else None,
+            review_decision=r.review_decision,
+        )
+        for r in records
+    ]
+
+    return InvoiceListResponse(
+        items=items,
+        total=total_count,
+        limit=clamped_limit,
+        offset=clamped_offset,
     )
