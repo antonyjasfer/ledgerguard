@@ -119,6 +119,44 @@ class InvoiceRecord(BaseModel):
         default=None,
         description="Reviewer rationale or audit comment",
     )
+    final_state: str | None = Field(
+        default=None,
+        description="Authoritative final business state (AUTO_APPROVED, MANUAL_REVIEW, HUMAN_APPROVED, HUMAN_REJECTED, BLOCKED)",
+    )
+
+    @property
+    def automated_decision(self) -> AgentDecision | None:
+        """Original automated verification decision."""
+        return self.original_decision or self.decision
+
+    @property
+    def human_review_decision(self) -> str | None:
+        """Verdict rendered by human reviewer."""
+        return self.review_decision
+
+    @property
+    def human_review_comment(self) -> str | None:
+        """Audit comment from human reviewer."""
+        return self.review_comment
+
+    @property
+    def human_review_reviewer(self) -> str | None:
+        """Identity of human reviewer."""
+        return self.reviewer
+
+    @property
+    def human_review_timestamp(self) -> str | None:
+        """Timestamp of human review."""
+        return self.review_timestamp
+
+    def get_final_state(self) -> str:
+        """Compute authoritative final business state."""
+        from app.models.state import derive_final_state
+        return derive_final_state(
+            automated_decision=self.original_decision or self.decision,
+            human_review_decision=self.review_decision,
+            processing_status=self.processing_status,
+        ).value
 
     @property
     def partition_key(self) -> str:
@@ -133,9 +171,18 @@ class InvoiceRecord(BaseModel):
     def to_dynamodb_item(self) -> dict[str, Any]:
         """Serialize into a DynamoDB item dict with primary keys and clean types."""
         raw = self.model_dump()
+        fstate = self.get_final_state()
+        raw["final_state"] = fstate
         item = _serialize_for_dynamodb(raw)
         item["PK"] = self.partition_key
         item["SK"] = self.sort_key
+        auto_dec = self.original_decision or self.decision
+        item["automated_decision"] = auto_dec.value if hasattr(auto_dec, "value") else (str(auto_dec) if auto_dec else None)
+        item["human_review_decision"] = self.review_decision
+        item["human_review_comment"] = self.review_comment
+        item["human_review_reviewer"] = self.reviewer
+        item["human_review_timestamp"] = self.review_timestamp
+        item["final_state"] = fstate
         return item
 
     @classmethod
@@ -164,9 +211,32 @@ class InvoiceRecord(BaseModel):
         if not cleaned.get("updated_at"):
             cleaned["updated_at"] = cleaned.get("created_at", datetime.now(timezone.utc).isoformat())
 
+        # Synchronize human review aliases
+        if "human_review_decision" in cleaned and not cleaned.get("review_decision"):
+            cleaned["review_decision"] = cleaned["human_review_decision"]
+        if "human_review_comment" in cleaned and not cleaned.get("review_comment"):
+            cleaned["review_comment"] = cleaned["human_review_comment"]
+        if "human_review_reviewer" in cleaned and not cleaned.get("reviewer"):
+            cleaned["reviewer"] = cleaned["human_review_reviewer"]
+        if "human_review_timestamp" in cleaned and not cleaned.get("review_timestamp"):
+            cleaned["review_timestamp"] = cleaned["human_review_timestamp"]
+        if "automated_decision" in cleaned and not cleaned.get("original_decision") and cleaned["automated_decision"]:
+            cleaned["original_decision"] = AgentDecision(cleaned["automated_decision"])
+
+        # Backward compatibility for legacy reviewed records in DynamoDB
+        rev_dec = str(cleaned.get("review_decision") or "").upper().strip()
+        curr_stat = str(cleaned.get("processing_status") or "")
+        if rev_dec == "APPROVE" and curr_stat in ("MANUAL_REVIEW", "ProcessingState.MANUAL_REVIEW"):
+            cleaned["processing_status"] = ProcessingState.HUMAN_APPROVED
+        elif rev_dec == "REJECT" and curr_stat in ("MANUAL_REVIEW", "ProcessingState.MANUAL_REVIEW"):
+            cleaned["processing_status"] = ProcessingState.HUMAN_REJECTED
+
         # Parse status enum
         if "processing_status" in cleaned and isinstance(cleaned["processing_status"], str):
-            cleaned["processing_status"] = ProcessingState(cleaned["processing_status"])
+            try:
+                cleaned["processing_status"] = ProcessingState(cleaned["processing_status"])
+            except ValueError:
+                cleaned["processing_status"] = ProcessingState.RECEIVED
         elif "processing_status" not in cleaned:
             cleaned["processing_status"] = ProcessingState.RECEIVED
 
@@ -176,6 +246,14 @@ class InvoiceRecord(BaseModel):
             cleaned["risk_level"] = RiskLevel(cleaned["risk_level"])
         if "original_decision" in cleaned and cleaned["original_decision"] is not None:
             cleaned["original_decision"] = AgentDecision(cleaned["original_decision"])
+
+        from app.models.state import derive_final_state
+        cleaned["final_state"] = derive_final_state(
+            automated_decision=cleaned.get("original_decision") or cleaned.get("decision"),
+            human_review_decision=cleaned.get("review_decision"),
+            processing_status=cleaned.get("processing_status"),
+        ).value
+
         return cls(**cleaned)
 
     @classmethod

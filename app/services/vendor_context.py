@@ -188,7 +188,7 @@ class VendorContextService:
         if vendor is None:
             if invoice.vendor_id and invoice.vendor_id.strip():
                 vendor = self.get_vendor(invoice.vendor_id)
-            elif invoice.vendor_name and invoice.vendor_name.strip():
+            if vendor is None and invoice.vendor_name and invoice.vendor_name.strip():
                 vendor = self.get_vendor(invoice.vendor_name)
 
         details: list[str] = []

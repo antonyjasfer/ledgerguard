@@ -283,6 +283,9 @@ async def get_invoice_status(
     if record is None:
         raise InvoiceNotFoundError(f"Invoice '{invoice_id}' not found.")
 
+    auto_dec = record.original_decision.value if record.original_decision else (record.decision.value if record.decision else None)
+    fstate = record.get_final_state()
+
     return InvoiceStatusResponse(
         invoice_id=record.invoice_id,
         invoice_number=record.invoice_number,
@@ -303,11 +306,17 @@ async def get_invoice_status(
         risk_score=record.risk_score,
         agent_run_id=record.agent_run_id,
         verification_summary=record.verification_summary,
-        original_decision=record.original_decision.value if record.original_decision else None,
+        original_decision=auto_dec,
+        automated_decision=auto_dec,
         review_decision=record.review_decision,
+        human_review_decision=record.review_decision,
         reviewer=record.reviewer,
+        human_review_reviewer=record.reviewer,
         review_timestamp=record.review_timestamp,
+        human_review_timestamp=record.review_timestamp,
         review_comment=record.review_comment,
+        human_review_comment=record.review_comment,
+        final_state=fstate,
         created_at=record.created_at,
         updated_at=record.updated_at,
     )
@@ -402,10 +411,15 @@ async def submit_human_review(
     record.review_comment = payload.comment
     record.updated_at = now_iso
 
+    # Processing status remains MANUAL_REVIEW (pipeline lifecycle), final_state is updated to authoritative decision
+    record.final_state = record.get_final_state()
+
     # Persist updated record
     repository.save_record(record)
 
-    # Emit append-only audit event
+    fstate = record.get_final_state()
+
+    # Emit append-only audit events
     repository.save_audit_event(
         AuditEvent(
             invoice_id=invoice_id,
@@ -417,27 +431,55 @@ async def submit_human_review(
                 "action": payload.action,
                 "comment": payload.comment,
                 "original_decision": orig_decision.value if hasattr(orig_decision, "value") else str(orig_decision),
+                "automated_decision": orig_decision.value if hasattr(orig_decision, "value") else str(orig_decision),
+                "final_state": fstate,
+                "request_id": req_id,
+            },
+        )
+    )
+    repository.save_audit_event(
+        AuditEvent(
+            invoice_id=invoice_id,
+            job_id=record.idempotency_key,
+            event_type=AuditEventType.HUMAN_REVIEW_COMPLETED,
+            source="ledgerguard_api",
+            details={
+                "reviewer": payload.reviewer,
+                "action": payload.action,
+                "human_review_decision": payload.action,
+                "comment": payload.comment,
+                "automated_decision": orig_decision.value if hasattr(orig_decision, "value") else str(orig_decision),
+                "final_state": fstate,
                 "request_id": req_id,
             },
         )
     )
 
     logger.info(
-        "Human review recorded successfully. invoice_id=%s, reviewer=%s, action=%s, request_id=%s",
+        "Human review recorded successfully. invoice_id=%s, reviewer=%s, action=%s, final_state=%s, request_id=%s",
         invoice_id,
         payload.reviewer,
         payload.action,
+        fstate,
         req_id,
     )
 
+    auto_dec_str = orig_decision.value if hasattr(orig_decision, "value") else str(orig_decision)
+
     return HumanReviewResponse(
         invoice_id=invoice_id,
-        original_decision=orig_decision.value if hasattr(orig_decision, "value") else str(orig_decision),
+        original_decision=auto_dec_str,
+        automated_decision=auto_dec_str,
         review_decision=payload.action,
+        human_review_decision=payload.action,
         reviewer=payload.reviewer,
+        human_review_reviewer=payload.reviewer,
         review_timestamp=now_iso,
+        human_review_timestamp=now_iso,
         review_comment=payload.comment,
+        human_review_comment=payload.comment,
         status=record.processing_status.value,
+        final_state=fstate,
     )
 
 @router.get(
@@ -452,18 +494,19 @@ async def list_invoices(
     _api_key: Annotated[str | None, Depends(require_api_key)],
     limit: int = 50,
     offset: int = 0,
-    status: ProcessingState | None = None,
+    status: str | None = None,
     vendor_id: str | None = None,
     search: str | None = None,
 ) -> InvoiceListResponse:
     req_id = getattr(request.state, "request_id", "unknown")
     clamped_limit = max(1, min(limit, 100))
     clamped_offset = max(0, offset)
+    status_str = status.value if hasattr(status, "value") else (str(status) if status else None)
     logger.info(
         "Listing invoices. limit=%d, offset=%d, status=%s, vendor_id=%s, search=%s, request_id=%s",
         clamped_limit,
         clamped_offset,
-        status.value if status else None,
+        status_str,
         vendor_id,
         search,
         req_id,
@@ -472,7 +515,7 @@ async def list_invoices(
     records = repository.list_records(
         limit=clamped_limit,
         offset=clamped_offset,
-        status=status,
+        status=status_str,
         vendor_id=vendor_id,
         search=search,
     )
@@ -498,8 +541,14 @@ async def list_invoices(
             created_at=r.created_at,
             updated_at=r.updated_at,
             document_s3_key=r.document_s3_key,
-            original_decision=r.original_decision.value if r.original_decision else None,
+            original_decision=r.original_decision.value if r.original_decision else (r.decision.value if r.decision else None),
+            automated_decision=r.original_decision.value if r.original_decision else (r.decision.value if r.decision else None),
             review_decision=r.review_decision,
+            human_review_decision=r.review_decision,
+            human_review_reviewer=r.reviewer,
+            human_review_timestamp=r.review_timestamp,
+            human_review_comment=r.review_comment,
+            final_state=r.get_final_state(),
         )
         for r in records
     ]

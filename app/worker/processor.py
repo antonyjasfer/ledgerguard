@@ -341,6 +341,22 @@ class InvoiceProcessor:
             except Exception as exc:
                 logger.warning("Could not persist full extraction result: %s", exc)
 
+        # Record GEMMA_EXTRACTION_COMPLETED if extracted by Gemma
+        if getattr(extraction_result, "extractor_provider", "") == "GemmaInvoiceExtractor":
+            self.repository.save_audit_event(
+                AuditEvent(
+                    invoice_id=invoice_id,
+                    job_id=job_id,
+                    event_type=AuditEventType.GEMMA_EXTRACTION_COMPLETED,
+                    details={
+                        "extractor": extraction_result.extractor_provider,
+                        "overall_confidence": extraction_result.overall_confidence,
+                        "field_count": len(extraction_result.invoice_fields),
+                        "line_items_count": len(extraction_result.line_items),
+                    },
+                )
+            )
+
         # Check for failure
         if extraction_result.status == ExtractionStatus.FAILED:
             if doc_rec:
@@ -402,7 +418,7 @@ class InvoiceProcessor:
                 subtotal=extraction_result.computed_subtotal,
                 tax=extraction_result.financials.get("tax", ExtractionField(field_name="tax")).value if isinstance(extraction_result.financials.get("tax"), ExtractionField) else None,
                 discount=extraction_result.financials.get("discount", ExtractionField(field_name="discount")).value if isinstance(extraction_result.financials.get("discount"), ExtractionField) else None,
-                shipping=extraction_result.financials.get("shipping", ExtractionField(field_name="shipping")).value if isinstance(extraction_result.financials.get("shipping"), ExtractionField) else Decimal("0.00"),
+                shipping=extraction_result.financials.get("shipping", ExtractionField(field_name="shipping")).value if isinstance(extraction_result.financials.get("shipping"), ExtractionField) else None,
                 total=extraction_result.declared_total,
                 document_s3_key=job.s3_key,
                 processing_status=ProcessingState.MANUAL_REVIEW,
@@ -421,6 +437,18 @@ class InvoiceProcessor:
             except Exception as exc:
                 logger.warning("Could not persist review InvoiceRecord: %s", exc)
 
+            self.repository.save_audit_event(
+                AuditEvent(
+                    invoice_id=invoice_id,
+                    job_id=job_id,
+                    event_type=AuditEventType.INSUFFICIENT_CONFIDENCE,
+                    details={
+                        "status": extraction_result.status.value,
+                        "overall_confidence": extraction_result.overall_confidence,
+                        "warnings": extraction_result.warnings,
+                    },
+                )
+            )
             self.repository.save_audit_event(
                 AuditEvent(
                     invoice_id=invoice_id,

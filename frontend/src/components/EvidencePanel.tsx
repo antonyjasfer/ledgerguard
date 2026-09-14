@@ -198,6 +198,31 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, invoice 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* 0. Document Extraction Understanding */}
+      <div className="card" style={{ borderLeft: '4px solid #6366f1' }}>
+        <h4 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+            <Layers size={18} color="#818cf8" /> Document Understanding & Extraction
+          </span>
+          <span className="badge" style={{ background: '#e0e7ff', color: '#3730a3', border: '1px solid #c7d2fe', fontSize: '0.75rem' }}>
+            Provider: <strong>{String((invoice as any)?.metadata?.extractor || (invoice as any)?.verification_summary?.extractor_provider || (evidence as any)?.extractor_provider || 'GemmaInvoiceExtractor')}</strong>
+          </span>
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', fontSize: '0.875rem' }}>
+          <div><span style={{ color: 'var(--text-muted)' }}>Invoice Number:</span> <code style={{ color: '#4f46e5' }}>{invoice?.invoice_number || 'NOT_STATED'}</code></div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Vendor:</span> <strong>{invoice?.vendor_name || 'NOT_STATED'}</strong></div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Invoice Date:</span> {invoice?.invoice_date || 'NOT_STATED'}</div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Currency:</span> {invoice?.currency || 'USD'}</div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Subtotal:</span> {invoice?.subtotal != null ? `$${formatMoney(invoice.subtotal)}` : '<NOT_STATED>'}</div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Shipping:</span> {invoice?.shipping != null ? `$${formatMoney(invoice.shipping)}` : '<NOT_STATED>'}</div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Tax:</span> {invoice?.tax != null ? `$${formatMoney(invoice.tax)}` : '<NOT_STATED>'}</div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Total:</span> {invoice?.total != null ? `$${formatMoney(invoice.total)}` : '<NOT_STATED>'}</div>
+        </div>
+        <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          Autonomous extraction with field-level confidence and strict Decimal financial normalization (ROUND_HALF_UP).
+        </div>
+      </div>
+
       {/* 1. Arithmetic Integrity */}
       <div className="card">
         <h4 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>

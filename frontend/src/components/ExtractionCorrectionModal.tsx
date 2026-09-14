@@ -278,7 +278,7 @@ export const ExtractionCorrectionModal: React.FC<ExtractionCorrectionModalProps>
                             <td className="py-2 px-3">{renderStatusBadge(f.status)}</td>
                             <td className="py-2 px-3">{renderConfidenceBadge(f.confidence)}</td>
                             <td className="py-2 px-3 font-mono text-gray-600 truncate max-w-[140px]" title={String(f.value ?? '')}>
-                              {f.value != null ? String(f.value) : <span className="text-gray-400 italic">none</span>}
+                              {f.value != null ? String(f.value) : <span className="text-gray-400 italic font-semibold">NOT_STATED</span>}
                             </td>
                             <td className="py-2 px-3">
                               <input
@@ -311,7 +311,7 @@ export const ExtractionCorrectionModal: React.FC<ExtractionCorrectionModalProps>
                             <td className="py-2 px-3">{renderStatusBadge(f.status)}</td>
                             <td className="py-2 px-3">{renderConfidenceBadge(f.confidence)}</td>
                             <td className="py-2 px-3 font-mono text-gray-600 truncate max-w-[140px]" title={String(f.value ?? '')}>
-                              {f.value != null ? `$${Number(f.value).toFixed(2)}` : <span className="text-gray-400 italic">none</span>}
+                              {f.value != null ? `$${Number(f.value).toFixed(2)}` : <span className="text-gray-400 italic font-semibold">NOT_STATED</span>}
                             </td>
                             <td className="py-2 px-3">
                               <input
@@ -319,7 +319,7 @@ export const ExtractionCorrectionModal: React.FC<ExtractionCorrectionModalProps>
                                 value={corrections[k]?.value ?? ''}
                                 onChange={(e) => handleFieldChange(k, e.target.value)}
                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
-                                placeholder={f.value != null ? String(f.value) : '0.00'}
+                                placeholder={f.value != null ? String(f.value) : 'NOT_STATED'}
                               />
                             </td>
                             <td className="py-2 px-3">

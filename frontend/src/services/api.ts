@@ -96,7 +96,7 @@ export const api = {
   listInvoices: (params: {
     limit?: number;
     offset?: number;
-    status?: ProcessingState | '';
+    status?: ProcessingState | string;
     search?: string;
     vendor_id?: string;
   } = {}): Promise<InvoiceListResponse> => {

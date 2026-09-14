@@ -95,7 +95,12 @@ export const InvoiceDetailPage: React.FC<InvoiceDetailPageProps> = ({ invoiceId,
     );
   }
 
-  const canReview = invoice.processing_status === 'MANUAL_REVIEW' || invoice.decision === 'MANUAL_REVIEW';
+  const canReview =
+    (invoice.final_state === 'MANUAL_REVIEW' ||
+      (invoice.processing_status === 'MANUAL_REVIEW' && !invoice.review_decision) ||
+      (invoice.decision === 'MANUAL_REVIEW' && !invoice.review_decision)) &&
+    invoice.processing_status !== 'BLOCKED' &&
+    invoice.final_state !== 'BLOCKED';
 
   return (
     <div>
@@ -148,13 +153,31 @@ export const InvoiceDetailPage: React.FC<InvoiceDetailPageProps> = ({ invoiceId,
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
           <div>
-            <div className="stat-label">Lifecycle Status</div>
-            <StatusBadge status={invoice.processing_status} />
+            <div className="stat-label">Final Status</div>
+            <StatusBadge status={(invoice.final_state || invoice.processing_status) as any} />
           </div>
 
           <div>
-            <div className="stat-label">Verification Verdict</div>
-            <DecisionBadge decision={invoice.decision} />
+            <div className="stat-label">Automated Decision</div>
+            <DecisionBadge decision={invoice.automated_decision || invoice.original_decision || invoice.decision} />
+          </div>
+
+          <div>
+            <div className="stat-label">Human Review</div>
+            {invoice.review_decision ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.25rem' }}>
+                <span className={`badge ${invoice.review_decision === 'APPROVE' ? 'badge-approved' : 'badge-blocked'}`}>
+                  {invoice.human_review_decision || invoice.review_decision}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  by {invoice.human_review_reviewer || invoice.reviewer || 'Auditor'}
+                </span>
+              </div>
+            ) : (
+              <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                {invoice.final_state === 'MANUAL_REVIEW' ? 'Awaiting Human Action' : 'Not Required'}
+              </div>
+            )}
           </div>
 
           <div>

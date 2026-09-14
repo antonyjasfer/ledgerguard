@@ -86,10 +86,16 @@ class InvoiceStatusResponse(BaseModel):
     agent_run_id: str | None = Field(default=None, description="Associated Strands Agent run ID")
     verification_summary: dict[str, Any] = Field(default_factory=dict, description="Tool evidence summary")
     original_decision: str | None = Field(default=None, description="Automated decision before human review")
+    automated_decision: str | None = Field(default=None, description="Automated decision before human review")
     review_decision: str | None = Field(default=None, description="Human reviewer action")
+    human_review_decision: str | None = Field(default=None, description="Human reviewer action")
     reviewer: str | None = Field(default=None, description="Human reviewer identifier")
+    human_review_reviewer: str | None = Field(default=None, description="Human reviewer identifier")
     review_timestamp: str | None = Field(default=None, description="Human review timestamp")
+    human_review_timestamp: str | None = Field(default=None, description="Human review timestamp")
     review_comment: str | None = Field(default=None, description="Human review comment/rationale")
+    human_review_comment: str | None = Field(default=None, description="Human review comment/rationale")
+    final_state: str = Field(..., description="Authoritative final business state")
     created_at: str = Field(..., description="Record creation timestamp")
     updated_at: str = Field(..., description="Last updated timestamp")
 
@@ -122,11 +128,17 @@ class HumanReviewResponse(BaseModel):
 
     invoice_id: str = Field(..., description="Invoice identifier")
     original_decision: str = Field(..., description="Preserved original automated decision")
+    automated_decision: str | None = Field(default=None, description="Preserved original automated decision")
     review_decision: str = Field(..., description="Human reviewer decision action")
+    human_review_decision: str | None = Field(default=None, description="Human reviewer decision action")
     reviewer: str = Field(..., description="Reviewer identifier")
+    human_review_reviewer: str | None = Field(default=None, description="Reviewer identifier")
     review_timestamp: str = Field(..., description="ISO UTC review timestamp")
+    human_review_timestamp: str | None = Field(default=None, description="ISO UTC review timestamp")
     review_comment: str = Field(..., description="Reviewer justification comment")
+    human_review_comment: str | None = Field(default=None, description="Reviewer justification comment")
     status: str = Field(..., description="Current invoice lifecycle state")
+    final_state: str | None = Field(default=None, description="Authoritative final business state")
 
 
 class HealthResponse(BaseModel):
@@ -185,7 +197,11 @@ class DashboardStatsResponse(BaseModel):
     estimated_payable_amount: Decimal = Field(default=Decimal("0.00"), description="Sum of calculated payable amounts")
     estimated_payable_coverage_pct: float = Field(default=0.0, description="Percentage of invoices with complete payable data")
     estimated_payable_invoices_count: int = Field(default=0, description="Number of invoices included in payable total")
+    human_approved_count: int = Field(default=0, description="Invoices approved by authorized human")
+    human_rejected_count: int = Field(default=0, description="Invoices rejected by authorized human")
     auto_approved_value: Decimal = Field(default=Decimal("0.00"), description="Total value of AUTO_APPROVED invoices")
+    human_approved_value: Decimal = Field(default=Decimal("0.00"), description="Total value of HUMAN_APPROVED invoices")
+    human_rejected_value: Decimal = Field(default=Decimal("0.00"), description="Total value of HUMAN_REJECTED invoices")
     manual_review_value: Decimal = Field(default=Decimal("0.00"), description="Total value of MANUAL_REVIEW invoices")
     blocked_value: Decimal = Field(default=Decimal("0.00"), description="Total value of BLOCKED invoices")
     duplicate_value: Decimal = Field(default=Decimal("0.00"), description="Total value of detected duplicate invoices")
@@ -202,6 +218,8 @@ class DashboardStatsResponse(BaseModel):
         "total_tax",
         "estimated_payable_amount",
         "auto_approved_value",
+        "human_approved_value",
+        "human_rejected_value",
         "manual_review_value",
         "blocked_value",
         "duplicate_value",
@@ -229,7 +247,13 @@ class InvoiceListItemResponse(BaseModel):
     updated_at: str
     document_s3_key: str | None = None
     original_decision: str | None = None
+    automated_decision: str | None = None
     review_decision: str | None = None
+    human_review_decision: str | None = None
+    human_review_reviewer: str | None = None
+    human_review_timestamp: str | None = None
+    human_review_comment: str | None = None
+    final_state: str | None = None
 
 
 class InvoiceListResponse(BaseModel):

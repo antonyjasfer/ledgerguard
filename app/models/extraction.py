@@ -169,3 +169,42 @@ class ExtractionResult(BaseModel):
             "extractor_version": self.extractor_version,
             "reconstructed_invoice": self.reconstructed_invoice.model_dump(mode="json") if self.reconstructed_invoice else None,
         }
+
+
+class GemmaFieldEvidence(BaseModel):
+    """Evidence metadata for an extracted field from Gemma."""
+    value: str | None = None
+    confidence: float = Field(default=0.95, ge=0.0, le=1.0)
+    source_page: int | None = 1
+    source_text: str | None = None
+    status: str = "VALID"
+
+
+class GemmaLineItemPayload(BaseModel):
+    """Single line item returned by Gemma document understanding."""
+    description: str = Field(..., description="Item or service description")
+    quantity: Any = Field(default=None, description="Invoiced quantity")
+    unit_price: Any = Field(default=None, description="Price per unit")
+    amount: Any = Field(default=None, description="Line total amount")
+    sku: str | None = None
+    confidence: float = Field(default=0.98, ge=0.0, le=1.0)
+
+
+class GemmaInvoicePayload(BaseModel):
+    """Strict structured invoice JSON contract returned by Gemma document understanding."""
+    invoice_number: str | None = None
+    vendor_name: str | None = None
+    vendor_id: str | None = None
+    customer_name: str | None = None
+    invoice_date: str | None = None
+    currency: str | None = "USD"
+    po_number: str | None = None
+    payment_terms: str | None = None
+    line_items: list[GemmaLineItemPayload] = Field(default_factory=list)
+    subtotal: str | None = None
+    discount: str | None = None
+    shipping: str | None = None
+    tax: str | None = None
+    total: str | None = None
+    fields: dict[str, Any] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)

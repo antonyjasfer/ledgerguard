@@ -166,8 +166,6 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
     ) -> list[InvoiceRecord]:
         """Scan and retrieve invoice records matching filter criteria."""
         filter_exp = Attr("SK").eq("METADATA") & Attr("PK").begins_with("INVOICE#")
-        if status is not None:
-            filter_exp = filter_exp & Attr("processing_status").eq(status.value)
         if vendor_id is not None:
             filter_exp = filter_exp & Attr("vendor_id").eq(vendor_id)
 
@@ -179,6 +177,16 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
                 records.append(InvoiceRecord.from_dynamodb_item(item))
             except Exception as exc:
                 logger.warning("Skipping invalid invoice record from DynamoDB: %s", exc)
+
+        if status is not None:
+            st_val = status.value if hasattr(status, "value") else str(status)
+            if st_val == "MANUAL_REVIEW":
+                records = [r for r in records if r.get_final_state() == "MANUAL_REVIEW"]
+            else:
+                records = [
+                    r for r in records
+                    if r.get_final_state() == st_val or r.processing_status.value == st_val
+                ]
 
         if search:
             s = search.lower()
@@ -246,6 +254,8 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
         risk_scores: list[int] = []
 
         auto_approved = 0
+        human_approved = 0
+        human_rejected = 0
         manual_review = 0
         blocked = 0
         pending = 0
@@ -259,6 +269,8 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
         total_tax = Decimal("0.00")
         estimated_payable_amount = Decimal("0.00")
         auto_approved_value = Decimal("0.00")
+        human_approved_value = Decimal("0.00")
+        human_rejected_value = Decimal("0.00")
         manual_review_value = Decimal("0.00")
         blocked_value = Decimal("0.00")
         duplicate_value = Decimal("0.00")
@@ -280,19 +292,38 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
             if r.decision is not None:
                 dec = r.decision.value
                 by_decision[dec] = by_decision.get(dec, 0) + 1
-                if dec == "AUTO_APPROVE":
-                    auto_approved += 1
-                    if r.total is not None:
-                        verified_spend += Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                        auto_approved_value += Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                elif dec in ("MANUAL_REVIEW", "ESCALATE"):
-                    manual_review += 1
-                    if r.total is not None:
-                        manual_review_value += Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                elif dec == "BLOCK":
-                    blocked += 1
-                    if r.total is not None:
-                        blocked_value += Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            # Authoritative single-category final state aggregation
+            fstate = r.get_final_state()
+            by_status[fstate] = by_status.get(fstate, 0) + 1
+
+            if fstate == "AUTO_APPROVED":
+                auto_approved += 1
+                if r.total is not None:
+                    amt = Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                    verified_spend += amt
+                    auto_approved_value += amt
+            elif fstate == "HUMAN_APPROVED":
+                human_approved += 1
+                if r.total is not None:
+                    amt = Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                    verified_spend += amt
+                    human_approved_value = (human_approved_value if 'human_approved_value' in locals() else Decimal("0.00")) + amt
+            elif fstate == "MANUAL_REVIEW":
+                manual_review += 1
+                if r.total is not None:
+                    amt = Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                    manual_review_value += amt
+            elif fstate == "HUMAN_REJECTED":
+                human_rejected += 1
+                if r.total is not None:
+                    amt = Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                    human_rejected_value = (human_rejected_value if 'human_rejected_value' in locals() else Decimal("0.00")) + amt
+            elif fstate == "BLOCKED":
+                blocked += 1
+                if r.total is not None:
+                    amt = Decimal(str(r.total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                    blocked_value += amt
 
             if r.risk_level is not None:
                 rl = r.risk_level.value
@@ -388,6 +419,8 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
             "pending_invoices": pending,
             "processed_invoices": processed,
             "auto_approved_count": auto_approved,
+            "human_approved_count": human_approved,
+            "human_rejected_count": human_rejected,
             "manual_review_count": manual_review,
             "blocked_count": blocked,
             "total_amount_usd": float(total_amount),
@@ -417,6 +450,8 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
             "estimated_payable_coverage_pct": coverage_pct,
             "estimated_payable_invoices_count": complete_payable_invoices_count,
             "auto_approved_value": auto_approved_value,
+            "human_approved_value": human_approved_value,
+            "human_rejected_value": human_rejected_value,
             "manual_review_value": manual_review_value,
             "blocked_value": blocked_value,
             "duplicate_value": duplicate_value,

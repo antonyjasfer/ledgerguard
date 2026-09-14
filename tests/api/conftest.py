@@ -114,7 +114,14 @@ class InMemoryInvoiceRepository(InvoiceRepository):
     ):
         records = list(self.records.values())
         if status is not None:
-            records = [r for r in records if r.processing_status == status]
+            st_val = status.value if hasattr(status, "value") else str(status)
+            if st_val == "MANUAL_REVIEW":
+                records = [r for r in records if r.get_final_state() == "MANUAL_REVIEW"]
+            else:
+                records = [
+                    r for r in records
+                    if r.get_final_state() == st_val or r.processing_status.value == st_val
+                ]
         if vendor_id is not None:
             records = [r for r in records if r.vendor_id == vendor_id]
         if search:
@@ -146,6 +153,8 @@ class InMemoryInvoiceRepository(InvoiceRepository):
         risk_scores = []
 
         auto_approved = 0
+        human_approved = 0
+        human_rejected = 0
         manual_review = 0
         blocked = 0
         pending = 0
@@ -163,12 +172,18 @@ class InMemoryInvoiceRepository(InvoiceRepository):
             if r.decision is not None:
                 dec = r.decision.value
                 by_decision[dec] = by_decision.get(dec, 0) + 1
-                if dec == "AUTO_APPROVE":
-                    auto_approved += 1
-                elif dec in ("MANUAL_REVIEW", "ESCALATE"):
-                    manual_review += 1
-                elif dec == "BLOCK":
-                    blocked += 1
+
+            fstate = r.get_final_state()
+            if fstate == "AUTO_APPROVED":
+                auto_approved += 1
+            elif fstate == "HUMAN_APPROVED":
+                human_approved += 1
+            elif fstate == "MANUAL_REVIEW":
+                manual_review += 1
+            elif fstate == "HUMAN_REJECTED":
+                human_rejected += 1
+            elif fstate == "BLOCKED":
+                blocked += 1
 
             if r.risk_level is not None:
                 rl = r.risk_level.value
@@ -193,6 +208,8 @@ class InMemoryInvoiceRepository(InvoiceRepository):
         total_tx = Decimal("0.00")
         est_payable = Decimal("0.00")
         auto_approved_val = Decimal("0.00")
+        human_approved_val = Decimal("0.00")
+        human_rejected_val = Decimal("0.00")
         manual_review_val = Decimal("0.00")
         blocked_val = Decimal("0.00")
         dup_val = Decimal("0.00")
@@ -200,13 +217,19 @@ class InMemoryInvoiceRepository(InvoiceRepository):
 
         for r in all_records:
             if r.total is not None:
-                total_invoice_val += Decimal(str(r.total))
-                if r.decision and r.decision.value == "AUTO_APPROVE":
-                    auto_approved_val += Decimal(str(r.total))
-                elif r.decision and r.decision.value in ("MANUAL_REVIEW", "ESCALATE"):
-                    manual_review_val += Decimal(str(r.total))
-                elif r.decision and r.decision.value == "BLOCK":
-                    blocked_val += Decimal(str(r.total))
+                amt = Decimal(str(r.total))
+                total_invoice_val += amt
+                fstate = r.get_final_state()
+                if fstate == "AUTO_APPROVED":
+                    auto_approved_val += amt
+                elif fstate == "HUMAN_APPROVED":
+                    human_approved_val += amt
+                elif fstate == "MANUAL_REVIEW":
+                    manual_review_val += amt
+                elif fstate == "HUMAN_REJECTED":
+                    human_rejected_val += amt
+                elif fstate == "BLOCKED":
+                    blocked_val += amt
             if r.subtotal is not None:
                 total_sub += Decimal(str(r.subtotal))
             if r.discount is not None:
@@ -226,6 +249,8 @@ class InMemoryInvoiceRepository(InvoiceRepository):
             "pending_invoices": pending,
             "processed_invoices": processed,
             "auto_approved_count": auto_approved,
+            "human_approved_count": human_approved,
+            "human_rejected_count": human_rejected,
             "manual_review_count": manual_review,
             "blocked_count": blocked,
             "total_amount_usd": float(total_amount),
@@ -249,6 +274,8 @@ class InMemoryInvoiceRepository(InvoiceRepository):
             "estimated_payable_coverage_pct": cov_pct,
             "estimated_payable_invoices_count": comp_count,
             "auto_approved_value": auto_approved_val,
+            "human_approved_value": human_approved_val,
+            "human_rejected_value": human_rejected_val,
             "manual_review_value": manual_review_val,
             "blocked_value": blocked_val,
             "duplicate_value": dup_val,

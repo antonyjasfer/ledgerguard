@@ -2,8 +2,11 @@ export type ProcessingState =
   | 'RECEIVED'
   | 'VALIDATED'
   | 'AGENT_PROCESSING'
+  | 'PROCESSING'
   | 'AUTO_APPROVED'
   | 'MANUAL_REVIEW'
+  | 'HUMAN_APPROVED'
+  | 'HUMAN_REJECTED'
   | 'BLOCKED'
   | 'FAILED'
   | 'DOCUMENT_INGESTED'
@@ -129,14 +132,22 @@ export interface InvoiceRecord {
   updated_at: string;
   agent_run_id?: string | null;
   verification_summary?: VerificationEvidence;
+  metadata?: Record<string, any>;
+  extractor_provider?: string;
   customer_name?: string | null;
   purchase_order_number?: string | null;
   line_items?: LineItem[];
   original_decision?: AgentDecision | null;
+  automated_decision?: AgentDecision | null;
   review_decision?: string | null;
+  human_review_decision?: string | null;
   reviewer?: string | null;
+  human_review_reviewer?: string | null;
   review_timestamp?: string | null;
+  human_review_timestamp?: string | null;
   review_comment?: string | null;
+  human_review_comment?: string | null;
+  final_state?: string | null;
 }
 
 export interface InvoiceListItem {
@@ -156,7 +167,16 @@ export interface InvoiceListItem {
   updated_at: string;
   document_s3_key?: string | null;
   original_decision?: AgentDecision | null;
+  automated_decision?: AgentDecision | null;
   review_decision?: string | null;
+  human_review_decision?: string | null;
+  reviewer?: string | null;
+  human_review_reviewer?: string | null;
+  review_timestamp?: string | null;
+  human_review_timestamp?: string | null;
+  review_comment?: string | null;
+  human_review_comment?: string | null;
+  final_state?: string | null;
 }
 
 export interface InvoiceListResponse {
@@ -171,6 +191,8 @@ export interface DashboardStats {
   pending_invoices: number;
   processed_invoices: number;
   auto_approved_count: number;
+  human_approved_count?: number;
+  human_rejected_count?: number;
   manual_review_count: number;
   blocked_count: number;
   total_amount_usd: number;
@@ -203,6 +225,8 @@ export interface DashboardStats {
   estimated_payable_coverage_pct?: number;
   estimated_payable_invoices_count?: number;
   auto_approved_value?: string | number;
+  human_approved_value?: string | number;
+  human_rejected_value?: string | number;
   manual_review_value?: string | number;
   blocked_value?: string | number;
   duplicate_value?: string | number;

@@ -80,13 +80,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const filteredInvoices = recentInvoices.filter((inv) => {
     if (!decisionFilter) return true;
     if (decisionFilter === 'AUTO_APPROVE') {
-      return inv.decision === 'AUTO_APPROVE' || inv.processing_status === 'AUTO_APPROVED';
+      return (inv.final_state === 'AUTO_APPROVED' || (inv.decision === 'AUTO_APPROVE' && !inv.review_decision));
+    }
+    if (decisionFilter === 'HUMAN_APPROVED') {
+      return inv.final_state === 'HUMAN_APPROVED' || inv.review_decision === 'APPROVE' || inv.processing_status === 'HUMAN_APPROVED';
     }
     if (decisionFilter === 'MANUAL_REVIEW') {
-      return inv.decision === 'MANUAL_REVIEW' || inv.processing_status === 'MANUAL_REVIEW';
+      return inv.final_state === 'MANUAL_REVIEW' || (inv.processing_status === 'MANUAL_REVIEW' && !inv.review_decision && inv.decision !== 'AUTO_APPROVE');
     }
     if (decisionFilter === 'BLOCK') {
-      return inv.decision === 'BLOCK' || inv.processing_status === 'BLOCKED';
+      return inv.final_state === 'BLOCKED' || inv.decision === 'BLOCK' || inv.processing_status === 'BLOCKED';
     }
     if (decisionFilter === 'DUPLICATE') {
       return (
@@ -417,6 +420,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </div>
 
               <div
+                onClick={() => setDecisionFilter(decisionFilter === 'HUMAN_APPROVED' ? null : 'HUMAN_APPROVED')}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-sm)',
+                  background: decisionFilter === 'HUMAN_APPROVED' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(15, 23, 42, 0.4)',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <CheckCircle size={16} color="#10b981" />
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Human-Approved Value</span>
+                </div>
+                <span style={{ fontWeight: 800, color: '#10b981' }}>
+                  ${stats ? formatMoney(stats.human_approved_value ?? '0.00') : '0.00'}
+                </span>
+              </div>
+
+              <div
                 onClick={() => setDecisionFilter(decisionFilter === 'MANUAL_REVIEW' ? null : 'MANUAL_REVIEW')}
                 style={{
                   display: 'flex',
@@ -545,6 +570,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         <div className="stat-card">
+          <div className="stat-label">Human-Approved</div>
+          <div className="stat-value" style={{ color: '#10b981' }}>
+            {stats ? stats.human_approved_count ?? 0 : '--'}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+            Auditor verified approvals
+          </div>
+        </div>
+
+        <div className="stat-card">
           <div className="stat-label">Manual Review</div>
           <div className="stat-value" style={{ color: '#fbbf24' }}>
             {stats ? stats.manual_review_count : '--'}
@@ -635,8 +670,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <td style={{ fontWeight: 600 }}>
                       {inv.total !== null && inv.total !== undefined ? `$${formatMoney(inv.total)}` : '--'}
                     </td>
-                    <td><StatusBadge status={inv.processing_status} /></td>
-                    <td><DecisionBadge decision={inv.decision} /></td>
+                    <td><StatusBadge status={(inv.final_state || inv.processing_status) as any} /></td>
+                    <td>
+                      <DecisionBadge
+                        decision={inv.automated_decision || inv.original_decision || inv.decision}
+                        reviewDecision={inv.human_review_decision || inv.review_decision}
+                      />
+                    </td>
                     <td><RiskBadge level={inv.risk_level} score={inv.risk_score} /></td>
                   </tr>
                 ))}

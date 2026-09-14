@@ -16,7 +16,7 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onSelectInvoice }) =
   const [error, setError] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ProcessingState | ''>('');
+  const [statusFilter, setStatusFilter] = useState<ProcessingState | string>('');
   const [page, setPage] = useState(0);
   const pageSize = 10;
 
@@ -51,12 +51,14 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onSelectInvoice }) =
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  const filterPills: Array<{ label: string; val: ProcessingState | '' }> = [
+  const filterPills: Array<{ label: string; val: ProcessingState | string }> = [
     { label: 'All', val: '' },
     { label: 'Auto-Approved', val: 'AUTO_APPROVED' },
     { label: 'Manual Review', val: 'MANUAL_REVIEW' },
+    { label: 'Human Approved', val: 'HUMAN_APPROVED' },
+    { label: 'Human Rejected', val: 'HUMAN_REJECTED' },
     { label: 'Blocked', val: 'BLOCKED' },
-    { label: 'Processing', val: 'AGENT_PROCESSING' },
+    { label: 'Processing', val: 'PROCESSING' },
     { label: 'Received', val: 'RECEIVED' },
   ];
 
@@ -149,9 +151,16 @@ export const InvoicesPage: React.FC<InvoicesPageProps> = ({ onSelectInvoice }) =
                     <td>{inv.invoice_number}</td>
                     <td>{inv.vendor_name}</td>
                     <td>{inv.invoice_date}</td>
-                    <td style={{ fontWeight: 600 }}></td>
-                    <td><StatusBadge status={inv.processing_status} /></td>
-                    <td><DecisionBadge decision={inv.decision} /></td>
+                    <td style={{ fontWeight: 600 }}>
+                      {inv.total !== null && inv.total !== undefined ? `$${formatMoney(inv.total)}` : '--'}
+                    </td>
+                    <td><StatusBadge status={inv.final_state || inv.processing_status} /></td>
+                    <td>
+                      <DecisionBadge
+                        decision={inv.automated_decision || inv.original_decision || inv.decision}
+                        reviewDecision={inv.human_review_decision || inv.review_decision}
+                      />
+                    </td>
                     <td><RiskBadge level={inv.risk_level} score={inv.risk_score} /></td>
                   </tr>
                 ))}
