@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Sequence
 
 from app.models.audit import AuditEvent
+from app.models.batch import BatchRecord, DocumentIngestionRecord
 from app.models.decision import AgentDecision
 from app.models.job import ProcessingJob
 from app.models.persistence import InvoiceRecord
@@ -87,6 +88,7 @@ class InvoiceRepository(ABC):
     def is_already_processed(self, invoice_id: str) -> bool:
         """Check if an invoice has already reached a completed/terminal state."""
         pass
+
     @abstractmethod
     def list_records(
         self,
@@ -110,9 +112,81 @@ class InvoiceRepository(ABC):
         pass
 
     @abstractmethod
-    def get_dashboard_stats(self) -> dict[str, Any]:
+    def get_dashboard_stats(self, batch_id: str | None = None, date_range: str | None = None) -> dict[str, Any]:
         """Aggregate high-level invoice processing statistics and metrics."""
         pass
+
+
+class BatchRepository(ABC):
+    """Abstract contract for bulk invoice batch and document ingestion persistence."""
+
+    @abstractmethod
+    def save_batch(self, batch: BatchRecord) -> None:
+        """Save or overwrite a batch metadata record."""
+        pass
+
+    @abstractmethod
+    def get_batch(self, batch_id: str) -> BatchRecord | None:
+        """Retrieve a batch record by unique batch identifier."""
+        pass
+
+    @abstractmethod
+    def list_batches(self, limit: int = 50, offset: int = 0) -> list[BatchRecord]:
+        """List batches ordered by creation timestamp."""
+        pass
+
+    @abstractmethod
+    def save_document_record(self, doc: DocumentIngestionRecord) -> None:
+        """Save or overwrite a document ingestion record."""
+        pass
+
+    @abstractmethod
+    def get_document_record(self, batch_id: str, document_id: str) -> DocumentIngestionRecord | None:
+        """Retrieve a document ingestion record by batch and document ID."""
+        pass
+
+    @abstractmethod
+    def list_batch_documents(self, batch_id: str) -> list[DocumentIngestionRecord]:
+        """List all document records belonging to a batch."""
+        pass
+
+    def list_batch_documents_paginated(
+        self,
+        batch_id: str,
+        limit: int = 50,
+        offset: int = 0,
+        status: str | None = None,
+    ) -> tuple[list[DocumentIngestionRecord], int]:
+        """List documents within a batch with pagination and optional status filter."""
+        docs = self.list_batch_documents(batch_id)
+        if status:
+            docs = [d for d in docs if (d.status.value if hasattr(d.status, "value") else d.status) == status]
+        return docs[offset : offset + limit], len(docs)
+
+
+    @abstractmethod
+    def find_document_by_hash(self, document_hash: str) -> DocumentIngestionRecord | None:
+        """Lookup an existing document by its content SHA-256 hash across all batches."""
+        pass
+
+    @abstractmethod
+    def save_document_hash_index(
+        self,
+        document_hash: str,
+        document_id: str,
+        batch_id: str,
+        s3_key: str | None = None,
+    ) -> None:
+        """Register a document content hash index item for fast duplicate lookups."""
+        pass
+
+    def save_extraction_result(self, batch_id: str, document_id: str, result: Any) -> None:
+        """Store structured extraction result in repository."""
+        pass
+
+    def get_extraction_result(self, batch_id: str, document_id: str) -> dict[str, Any] | None:
+        """Retrieve structured extraction result from repository."""
+        return None
 
 
 class JobQueue(ABC):

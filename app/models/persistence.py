@@ -61,6 +61,7 @@ class InvoiceRecord(BaseModel):
     subtotal: Decimal | None = Field(default=None)
     tax: Decimal | None = Field(default=None)
     discount: Decimal | None = Field(default=None)
+    shipping: Decimal | None = Field(default=Decimal("0"))
     total: Decimal | None = Field(default=None)
     document_s3_key: str | None = Field(default=None, description="S3 storage key for raw source document")
     processing_status: ProcessingState = Field(
@@ -141,11 +142,34 @@ class InvoiceRecord(BaseModel):
     def from_dynamodb_item(cls, item: dict[str, Any]) -> "InvoiceRecord":
         """Deserialize a DynamoDB item back into an InvoiceRecord."""
         cleaned = dict(item)
+        pk = item.get("PK", "")
         cleaned.pop("PK", None)
         cleaned.pop("SK", None)
+
+        # Ensure required fields have valid fallbacks if item was partially updated
+        if not cleaned.get("invoice_id"):
+            cleaned["invoice_id"] = pk.replace("INVOICE#", "") if pk.startswith("INVOICE#") else "UNKNOWN"
+        if not cleaned.get("invoice_number"):
+            cleaned["invoice_number"] = cleaned["invoice_id"]
+        if not cleaned.get("vendor_id"):
+            cleaned["vendor_id"] = "UNKNOWN"
+        if not cleaned.get("vendor_name"):
+            cleaned["vendor_name"] = "Unknown Vendor"
+        if not cleaned.get("invoice_date"):
+            cleaned["invoice_date"] = cleaned.get("created_at", "2026-01-01")[:10]
+        if not cleaned.get("currency"):
+            cleaned["currency"] = "USD"
+        if not cleaned.get("created_at"):
+            cleaned["created_at"] = cleaned.get("updated_at", datetime.now(timezone.utc).isoformat())
+        if not cleaned.get("updated_at"):
+            cleaned["updated_at"] = cleaned.get("created_at", datetime.now(timezone.utc).isoformat())
+
         # Parse status enum
         if "processing_status" in cleaned and isinstance(cleaned["processing_status"], str):
             cleaned["processing_status"] = ProcessingState(cleaned["processing_status"])
+        elif "processing_status" not in cleaned:
+            cleaned["processing_status"] = ProcessingState.RECEIVED
+
         if "decision" in cleaned and cleaned["decision"] is not None:
             cleaned["decision"] = AgentDecision(cleaned["decision"])
         if "risk_level" in cleaned and cleaned["risk_level"] is not None:
@@ -174,6 +198,7 @@ class InvoiceRecord(BaseModel):
             subtotal=invoice.subtotal,
             tax=invoice.tax,
             discount=invoice.discount,
+            shipping=invoice.shipping,
             total=invoice.total,
             customer_name=invoice.customer_name,
             line_items=[item.model_dump() for item in invoice.line_items],
@@ -211,6 +236,7 @@ class InvoiceRecord(BaseModel):
             subtotal=self.subtotal,
             tax=self.tax,
             discount=self.discount,
+            shipping=self.shipping,
             total=self.total,
             line_items=items,
         )

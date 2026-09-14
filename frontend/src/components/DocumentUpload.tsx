@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../services/api.ts';
 import { UploadCloud, FileCheck, AlertCircle, Info } from 'lucide-react';
 
 interface DocumentUploadProps {
   invoiceId: string;
   currentKey?: string | null;
-  onUploaded: (key: string, filename: string) => void;
+  onUploaded: (key: string, filename?: string) => void;
 }
 
 export const DocumentUpload: React.FC<DocumentUploadProps> = ({ invoiceId, currentKey, onUploaded }) => {
@@ -13,6 +13,12 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({ invoiceId, curre
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successKey, setSuccessKey] = useState<string | null>(currentKey || null);
+
+  useEffect(() => {
+    if (currentKey) {
+      setSuccessKey(currentKey);
+    }
+  }, [currentKey]);
 
   const handleUpload = async () => {
     if (!file) return;
@@ -60,14 +66,21 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({ invoiceId, curre
             S3 Key: <code>{successKey}</code>
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div style={{ padding: '0.75rem', background: 'var(--bg-primary)', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          No source document currently attached to this invoice record.
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
         <input
           id="s3-document-file-input"
           type="file"
           accept=".pdf,.png,.jpg,.jpeg"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => {
+            setError(null);
+            setFile(e.target.files?.[0] || null);
+          }}
           style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}
         />
         <button

@@ -1,7 +1,7 @@
 """FastAPI application entrypoint for LedgerGuard.
 
 Configures application middleware, structured error handling, OpenAPI documentation,
-and mounts health and invoice verification routes.
+and mounts health, invoice verification, dashboard, enterprise context, and bulk batch ingestion routes.
 """
 
 import logging
@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.errors import register_error_handlers
 from app.api.middleware import RequestCorrelationMiddleware
-from app.api.routes import dashboard, health, invoices
+from app.api.routes import batches, dashboard, enterprise, health, invoices
 from app.config import get_settings
 
 logger = logging.getLogger("ledgerguard.api")
@@ -38,8 +38,8 @@ def create_app() -> FastAPI:
         title="LedgerGuard Invoice Verification API",
         description=(
             "Autonomous Accounts Payable invoice verification backend powered by "
-            "deterministic verification tools, Strands Agent reasoning, Decision Guard, "
-            "and Amazon Bedrock Mantle / AWS infrastructure."
+            "deterministic verification tools, enterprise company policy, vendor master, "
+            "bulk batch ingestion, Strands Agent reasoning, Decision Guard, and Amazon Bedrock Mantle / AWS infrastructure."
         ),
         version="0.1.0",
         docs_url="/docs",
@@ -66,7 +66,9 @@ def create_app() -> FastAPI:
     # 3. Mount Route Endpoints
     app.include_router(health.router)
     app.include_router(dashboard.router)
+    app.include_router(enterprise.router)
     app.include_router(invoices.router)
+    app.include_router(batches.router)
 
     return app
 

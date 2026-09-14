@@ -1,6 +1,6 @@
 """Decision guard for LedgerGuard.
 
-Final safety layer that validates the agent's decision against deterministic tool results.
+Final deterministic safety layer that validates the agent's decision against deterministic tool results.
 The LLM's recommendation is advisory; deterministic safety rules have final authority.
 """
 
@@ -45,8 +45,10 @@ def validate_agent_decision(
     1. Confirmed duplicate -> MUST be BLOCK
     2. Policy block -> MUST be BLOCK
     3. Critical risk -> MUST be BLOCK
-    4. Arithmetic FAIL -> MUST NOT be AUTO_APPROVE (at minimum MANUAL_REVIEW)
-    5. Insufficient data -> MUST NOT be AUTO_APPROVE (at minimum MANUAL_REVIEW)
+    4. Arithmetic FAIL -> MUST NOT be AUTO_APPROVE (BLOCK if policy blocks, else MANUAL_REVIEW)
+    5. Policy requires review -> MUST NOT be AUTO_APPROVE (at minimum MANUAL_REVIEW)
+    6. High or Medium risk -> MUST NOT be AUTO_APPROVE (at minimum MANUAL_REVIEW)
+    7. Insufficient data -> MUST NOT be AUTO_APPROVE (at minimum MANUAL_REVIEW)
 
     The guard may escalate a decision but never downgrades safety.
 
@@ -91,7 +93,7 @@ def validate_agent_decision(
                 override_reason="CRITICAL risk requires BLOCK. Agent proposed: " + agent_decision.value,
             )
 
-    # Rule 4: Arithmetic FAIL -> at minimum MANUAL_REVIEW
+    # Rule 4: Arithmetic FAIL -> at minimum MANUAL_REVIEW (or BLOCK if policy dictated)
     if arithmetic is not None and arithmetic.status == VerificationStatus.FAIL:
         if agent_decision == AgentDecision.AUTO_APPROVE:
             return DecisionGuardResult(
@@ -101,7 +103,27 @@ def validate_agent_decision(
                 override_reason="Arithmetic verification FAIL prevents AUTO_APPROVE.",
             )
 
-    # Rule 5: Insufficient data -> at minimum MANUAL_REVIEW
+    # Rule 5: Policy review required -> prevents AUTO_APPROVE
+    if policy is not None and policy.requires_review:
+        if agent_decision == AgentDecision.AUTO_APPROVE:
+            return DecisionGuardResult(
+                original_decision=agent_decision,
+                final_decision=AgentDecision.MANUAL_REVIEW,
+                was_overridden=True,
+                override_reason="Policy review required prevents AUTO_APPROVE.",
+            )
+
+    # Rule 6: High/Medium risk -> prevents AUTO_APPROVE
+    if risk is not None and risk.risk_level in (RiskLevel.HIGH, RiskLevel.MEDIUM):
+        if agent_decision == AgentDecision.AUTO_APPROVE:
+            return DecisionGuardResult(
+                original_decision=agent_decision,
+                final_decision=AgentDecision.MANUAL_REVIEW,
+                was_overridden=True,
+                override_reason=f"{risk.risk_level.value} risk prevents AUTO_APPROVE.",
+            )
+
+    # Rule 7: Insufficient data -> at minimum MANUAL_REVIEW
     if arithmetic is not None and arithmetic.status == VerificationStatus.INSUFFICIENT_DATA:
         if agent_decision == AgentDecision.AUTO_APPROVE:
             return DecisionGuardResult(

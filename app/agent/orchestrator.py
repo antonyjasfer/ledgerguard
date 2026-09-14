@@ -14,15 +14,18 @@ from app.agent.decision_guard import DecisionGuardResult, validate_agent_decisio
 from app.config import Settings, get_settings
 from app.models.decision import AgentDecision, VerificationDecision
 from app.models.invoice import Invoice
-from app.models.policy import PolicyConfig
+from app.models.policy import ApprovalRoutingTier, PolicyConfig, evaluate_approval_matrix
 from app.models.verification import (
     ArithmeticVerificationResult,
     DuplicateCheckResult,
+    DuplicateStatus,
     PolicyVerificationResult,
     RiskLevel,
     RiskResult,
+    VendorContextResult,
     VendorHistoryResult,
 )
+from app.services.vendor_context import vendor_context_service
 from app.tools.arithmetic import calculate_invoice_arithmetic
 from app.tools.duplicates import check_duplicate_invoice
 from app.tools.policy import evaluate_invoice_policy
@@ -53,26 +56,9 @@ def run_verification_workflow(
     agent_proposed_decision: AgentDecision | None = None,
     agent_summary: str = "",
 ) -> tuple[VerificationDecision, ExecutionMetadata]:
-    """Execute the end-to-end verification pipeline with Decision Guard protection.
-
-    1. Executes deterministic verification tools as needed based on available data.
-    2. Collects structured findings and tool trace.
-    3. Synthesizes a structured decision.
-    4. Applies Decision Guard to validate/override the decision against deterministic safety rules.
-    5. Emits safe execution metadata without exposing credentials.
-
-    Args:
-        invoice: The candidate invoice under verification.
-        history: Prior historical invoices for vendor history and duplicate checks.
-        policy_config: Optional custom corporate policy thresholds.
-        settings: Optional application settings to resolve provider/model names.
-        agent_proposed_decision: Optional proposed decision from LLM (to test guard overrides).
-        agent_summary: Optional LLM rationale/summary.
-
-    Returns:
-        Tuple of (Final VerificationDecision, ExecutionMetadata).
-    """
+    """Execute the end-to-end verification pipeline with Decision Guard protection."""
     resolved_settings = settings or get_settings()
+    resolved_policy = policy_config or PolicyConfig()
     tools_called: list[str] = []
 
     # 1. Arithmetic verification
@@ -91,13 +77,34 @@ def run_verification_workflow(
         vendor_result = get_vendor_history(invoice.vendor_id, history)
         tools_called.append("get_vendor_history")
 
-    # 4. Policy evaluation
+    # 4. Vendor Context Service lookup (deterministic enterprise layer)
+    vendor_context = vendor_context_service.evaluate_vendor_context(invoice, history_result=vendor_result)
+
+    # 5. Policy evaluation
     policy_result: PolicyVerificationResult | None = None
     if vendor_result is not None and dup_result is not None:
-        policy_result = evaluate_invoice_policy(invoice, vendor_result, dup_result, policy_config)
+        policy_result = evaluate_invoice_policy(
+            invoice=invoice,
+            vendor_history=vendor_result,
+            duplicate_result=dup_result,
+            config=resolved_policy,
+            vendor_context=vendor_context,
+            arithmetic_result=arith_result,
+        )
         tools_called.append("evaluate_invoice_policy")
 
-    # 5. Risk calculation
+    # 6. Approval Matrix Evaluation
+    is_dup_confirmed = (dup_result.status == DuplicateStatus.CONFIRMED_DUPLICATE)
+    has_arith_fail = (arith_result is not None and not arith_result.passed)
+    approval_routing = evaluate_approval_matrix(
+        invoice_total=invoice.total,
+        config=resolved_policy,
+        is_new_vendor=vendor_context.is_new_vendor,
+        is_duplicate=is_dup_confirmed,
+        has_arithmetic_mismatch=has_arith_fail,
+    )
+
+    # 7. Risk calculation
     risk_result: RiskResult | None = None
     if (
         arith_result is not None
@@ -105,7 +112,15 @@ def run_verification_workflow(
         and vendor_result is not None
         and policy_result is not None
     ):
-        risk_result = calculate_invoice_risk(arith_result, dup_result, vendor_result, policy_result, invoice)
+        risk_result = calculate_invoice_risk(
+            arithmetic=arith_result,
+            duplicate=dup_result,
+            vendor_history=vendor_result,
+            policy=policy_result,
+            invoice=invoice,
+            high_value_threshold=resolved_policy.high_value_threshold,
+            vendor_context=vendor_context,
+        )
         tools_called.append("calculate_invoice_risk")
 
     # Synthesize evidence-based decision
@@ -117,6 +132,8 @@ def run_verification_workflow(
         risk=risk_result,
         tools_called=tools_called,
         agent_summary=agent_summary,
+        vendor_context=vendor_context,
+        approval_routing=approval_routing,
     )
 
     # If an external agent proposed a different decision, validate it through the Guard

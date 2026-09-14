@@ -111,6 +111,7 @@ async def create_invoice(
         subtotal=payload.subtotal,
         tax=payload.tax,
         discount=payload.discount,
+        shipping=payload.shipping,
         total=payload.total,
         line_items=payload.line_items,
         metadata=payload.metadata,
@@ -172,6 +173,12 @@ async def create_invoice(
     status_code=status.HTTP_200_OK,
     summary="Attach invoice document",
     description="Upload source invoice document to S3 and associate with invoice record.",
+)
+@router.post(
+    "/{invoice_id}/documents",
+    response_model=DocumentUploadResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
 )
 async def upload_document(
     request: Request,
@@ -287,6 +294,7 @@ async def get_invoice_status(
         subtotal=record.subtotal,
         tax=record.tax,
         discount=record.discount,
+        shipping=record.shipping,
         total=record.total,
         document_s3_key=record.document_s3_key,
         processing_status=record.processing_status.value,

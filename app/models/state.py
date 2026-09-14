@@ -10,6 +10,12 @@ from enum import Enum
 class ProcessingState(str, Enum):
     """Lifecycle states for invoice processing."""
     RECEIVED = "RECEIVED"
+    DOCUMENT_INGESTED = "DOCUMENT_INGESTED"
+    AWAITING_EXTRACTION = "AWAITING_EXTRACTION"
+    EXTRACTING = "EXTRACTING"
+    EXTRACTION_COMPLETED = "EXTRACTION_COMPLETED"
+    EXTRACTION_VALIDATED = "EXTRACTION_VALIDATED"
+    INSUFFICIENT_CONFIDENCE = "INSUFFICIENT_CONFIDENCE"
     QUEUED = "QUEUED"
     PROCESSING = "PROCESSING"
     VERIFIED = "VERIFIED"
@@ -21,6 +27,49 @@ class ProcessingState(str, Enum):
 
 VALID_TRANSITIONS: dict[ProcessingState, set[ProcessingState]] = {
     ProcessingState.RECEIVED: {
+        ProcessingState.DOCUMENT_INGESTED,
+        ProcessingState.AWAITING_EXTRACTION,
+        ProcessingState.QUEUED,
+        ProcessingState.PROCESSING,
+        ProcessingState.FAILED,
+    },
+    ProcessingState.DOCUMENT_INGESTED: {
+        ProcessingState.AWAITING_EXTRACTION,
+        ProcessingState.EXTRACTING,
+        ProcessingState.QUEUED,
+        ProcessingState.FAILED,
+    },
+    ProcessingState.AWAITING_EXTRACTION: {
+        ProcessingState.EXTRACTING,
+        ProcessingState.EXTRACTION_COMPLETED,
+        ProcessingState.EXTRACTION_VALIDATED,
+        ProcessingState.INSUFFICIENT_CONFIDENCE,
+        ProcessingState.QUEUED,
+        ProcessingState.PROCESSING,
+        ProcessingState.FAILED,
+    },
+    ProcessingState.EXTRACTING: {
+        ProcessingState.EXTRACTION_COMPLETED,
+        ProcessingState.EXTRACTION_VALIDATED,
+        ProcessingState.INSUFFICIENT_CONFIDENCE,
+        ProcessingState.MANUAL_REVIEW,
+        ProcessingState.FAILED,
+    },
+    ProcessingState.EXTRACTION_COMPLETED: {
+        ProcessingState.EXTRACTION_VALIDATED,
+        ProcessingState.INSUFFICIENT_CONFIDENCE,
+        ProcessingState.MANUAL_REVIEW,
+        ProcessingState.QUEUED,
+        ProcessingState.PROCESSING,
+        ProcessingState.FAILED,
+    },
+    ProcessingState.EXTRACTION_VALIDATED: {
+        ProcessingState.QUEUED,
+        ProcessingState.PROCESSING,
+        ProcessingState.FAILED,
+    },
+    ProcessingState.INSUFFICIENT_CONFIDENCE: {
+        ProcessingState.MANUAL_REVIEW,
         ProcessingState.QUEUED,
         ProcessingState.PROCESSING,
         ProcessingState.FAILED,
@@ -48,6 +97,8 @@ VALID_TRANSITIONS: dict[ProcessingState, set[ProcessingState]] = {
     ProcessingState.FAILED: {
         ProcessingState.QUEUED,
         ProcessingState.PROCESSING,
+        ProcessingState.AWAITING_EXTRACTION,
+        ProcessingState.EXTRACTING,
     },
 }
 

@@ -1,6 +1,7 @@
 """Verification enums and result data models for LedgerGuard.
 
-Provides stable, structured schemas for all verification tool outputs.
+Provides stable, structured schemas for all verification tool outputs,
+including vendor context, approval routing, arithmetic, duplicate, and risk results.
 """
 
 from datetime import date
@@ -52,6 +53,8 @@ class ArithmeticVerificationResult(BaseModel):
     actual_tax: Decimal | None = Field(default=None, description="Invoice reported tax amount")
     expected_discount: Decimal | None = Field(default=None, description="Expected discount amount")
     actual_discount: Decimal | None = Field(default=None, description="Invoice reported discount amount")
+    expected_shipping: Decimal | None = Field(default=None, description="Expected shipping amount")
+    actual_shipping: Decimal | None = Field(default=None, description="Invoice reported shipping amount")
     expected_total: Decimal | None = Field(default=None, description="Calculated grand total")
     actual_total: Decimal | None = Field(default=None, description="Invoice reported grand total")
     difference: Decimal | None = Field(default=None, description="Absolute difference between expected and actual total")
@@ -79,6 +82,38 @@ class VendorHistoryResult(BaseModel):
     currency_distribution: dict[str, Decimal] = Field(default_factory=dict, description="Spend per currency code")
     recent_invoice_count: int = Field(default=0, ge=0, description="Invoices within the configured recent window")
     new_vendor: bool = Field(default=True, description="True if no prior invoice history exists")
+
+
+class VendorContextResult(BaseModel):
+    """Deterministic comparison between incoming invoice and enterprise vendor master profile."""
+    vendor_id: str = Field(..., description="Vendor identifier")
+    vendor_name: str | None = Field(default=None, description="Vendor legal entity name")
+    vendor_exists: bool = Field(default=False, description="Whether vendor is registered in corporate vendor master")
+    is_active: bool = Field(default=False, description="Whether vendor status is active")
+    status: str = Field(default="UNKNOWN", description="Vendor status: ACTIVE, PENDING, SUSPENDED, INACTIVE")
+    country: str = Field(default="US", description="Vendor country of origin")
+    approved_currencies: list[str] = Field(default_factory=list, description="Currencies approved for billing")
+    currency_supported: bool = Field(default=True, description="Whether invoice currency matches approved currencies")
+    payment_terms: str = Field(default="Net 30", description="Commercial payment terms")
+    po_required: bool = Field(default=False, description="Whether purchase orders are required for this vendor")
+    po_provided: bool = Field(default=False, description="Whether invoice provides a valid PO number")
+    missing_po: bool = Field(default=False, description="True if PO is required but not provided")
+    onboarding_status: str = Field(default="UNKNOWN", description="Onboarding status: APPROVED, PENDING, REJECTED")
+    bank_verification_status: str = Field(default="NOT_VERIFIED", description="Bank verification status (VERIFIED/NOT_VERIFIED)")
+    is_new_vendor: bool = Field(default=True, description="Whether vendor has 0 historical transactions")
+    historical_invoice_count: int = Field(default=0, ge=0, description="Number of past invoices on record")
+    historical_total_spend: Decimal = Field(default=Decimal("0.00"), description="Historical total spend")
+    historical_average: Decimal | None = Field(default=None, description="Average historical invoice amount")
+    historical_largest: Decimal | None = Field(default=None, description="Largest historical invoice amount")
+    normal_range_min: Decimal | None = Field(default=None, description="Baseline minimum typical invoice amount")
+    normal_range_max: Decimal | None = Field(default=None, description="Baseline maximum typical invoice amount")
+    current_amount: Decimal | None = Field(default=None, description="Amount of the invoice under evaluation")
+    deviation_factor: Decimal | None = Field(
+        default=None,
+        description="Ratio of current amount to historical average (None if no history)",
+    )
+    is_above_normal_range: bool = Field(default=False, description="Whether current amount exceeds normal maximum")
+    details: list[str] = Field(default_factory=list, description="Descriptive vendor context findings")
 
 
 class PolicyViolation(BaseModel):

@@ -186,6 +186,41 @@ class InMemoryInvoiceRepository(InvoiceRepository):
         avg_risk = float(sum(risk_scores) / len(risk_scores)) if risk_scores else 0.0
         approval_rate = float((auto_approved / processed) * 100) if processed > 0 else 0.0
 
+        total_invoice_val = Decimal("0.00")
+        total_sub = Decimal("0.00")
+        total_disc = Decimal("0.00")
+        total_ship = Decimal("0.00")
+        total_tx = Decimal("0.00")
+        est_payable = Decimal("0.00")
+        auto_approved_val = Decimal("0.00")
+        manual_review_val = Decimal("0.00")
+        blocked_val = Decimal("0.00")
+        dup_val = Decimal("0.00")
+        comp_count = 0
+
+        for r in all_records:
+            if r.total is not None:
+                total_invoice_val += Decimal(str(r.total))
+                if r.decision and r.decision.value == "AUTO_APPROVE":
+                    auto_approved_val += Decimal(str(r.total))
+                elif r.decision and r.decision.value in ("MANUAL_REVIEW", "ESCALATE"):
+                    manual_review_val += Decimal(str(r.total))
+                elif r.decision and r.decision.value == "BLOCK":
+                    blocked_val += Decimal(str(r.total))
+            if r.subtotal is not None:
+                total_sub += Decimal(str(r.subtotal))
+            if r.discount is not None:
+                total_disc += Decimal(str(r.discount))
+            if r.shipping is not None:
+                total_ship += Decimal(str(r.shipping))
+            if r.tax is not None:
+                total_tx += Decimal(str(r.tax))
+            if r.subtotal is not None and r.tax is not None:
+                est_payable += (Decimal(str(r.subtotal)) - Decimal(str(r.discount or 0)) + Decimal(str(r.shipping or 0)) + Decimal(str(r.tax)))
+                comp_count += 1
+
+        cov_pct = float(round((comp_count / total) * 100, 1)) if total > 0 else 0.0
+
         return {
             "total_invoices": total,
             "pending_invoices": pending,
@@ -199,6 +234,28 @@ class InMemoryInvoiceRepository(InvoiceRepository):
             "by_status": by_status,
             "by_decision": by_decision,
             "by_risk_level": by_risk_level,
+            "new_vendors_detected": 0,
+            "duplicate_invoices_detected": 0,
+            "high_risk_invoices": by_risk_level.get("HIGH", 0) + by_risk_level.get("CRITICAL", 0),
+            "low_risk_invoices": by_risk_level.get("LOW", 0),
+            "total_verified_spend_usd": float(auto_approved_val),
+            "active_policy_summary": {},
+            "total_invoice_value": total_invoice_val,
+            "total_subtotal": total_sub,
+            "total_discount": total_disc,
+            "total_shipping": total_ship,
+            "total_tax": total_tx,
+            "estimated_payable_amount": est_payable,
+            "estimated_payable_coverage_pct": cov_pct,
+            "estimated_payable_invoices_count": comp_count,
+            "auto_approved_value": auto_approved_val,
+            "manual_review_value": manual_review_val,
+            "blocked_value": blocked_val,
+            "duplicate_value": dup_val,
+            "extraction_success_count": 0,
+            "extraction_failed_count": 0,
+            "low_confidence_count": 0,
+            "insufficient_data_count": 0,
         }
 
 

@@ -21,7 +21,7 @@ def calculate_invoice_arithmetic(
     Verifies:
     1. Quantity * Unit Price for each line item.
     2. Sum of line subtotals equals the reported subtotal.
-    3. Final grand total equals (subtotal + tax - discount).
+    3. Final grand total equals (subtotal - discount + shipping + tax).
 
     Args:
         invoice: The invoice to verify.
@@ -53,6 +53,8 @@ def calculate_invoice_arithmetic(
             actual_tax=invoice.tax,
             expected_discount=invoice.discount,
             actual_discount=invoice.discount,
+            expected_shipping=invoice.shipping,
+            actual_shipping=invoice.shipping,
             expected_total=None,
             actual_total=invoice.total,
             difference=None,
@@ -78,15 +80,17 @@ def calculate_invoice_arithmetic(
             f"reported {actual_subtotal} (diff: {subtotal_diff})."
         )
 
-    # 3. Tax and Discount handling
+    # 3. Tax, Discount, and Shipping handling
     actual_tax = invoice.tax.quantize(MONEY_QUANTUM, rounding=ROUNDING_STRATEGY) if invoice.tax is not None else Decimal("0.00")
     actual_discount = invoice.discount.quantize(MONEY_QUANTUM, rounding=ROUNDING_STRATEGY) if invoice.discount is not None else Decimal("0.00")
+    actual_shipping = invoice.shipping.quantize(MONEY_QUANTUM, rounding=ROUNDING_STRATEGY) if invoice.shipping is not None else Decimal("0.00")
 
     expected_tax = actual_tax
     expected_discount = actual_discount
+    expected_shipping = actual_shipping
 
-    # 4. Expected Total
-    expected_total = (expected_subtotal + actual_tax - actual_discount).quantize(
+    # 4. Expected Total: subtotal - discount + shipping + tax
+    expected_total = (expected_subtotal - actual_discount + actual_shipping + actual_tax).quantize(
         MONEY_QUANTUM, rounding=ROUNDING_STRATEGY
     )
     actual_total = invoice.total.quantize(MONEY_QUANTUM, rounding=ROUNDING_STRATEGY)
@@ -96,7 +100,7 @@ def calculate_invoice_arithmetic(
     if total_mismatch:
         details.append(
             f"Total mismatch: calculated {expected_total} "
-            f"(subtotal {expected_subtotal} + tax {actual_tax} - discount {actual_discount}), "
+            f"(subtotal {expected_subtotal} - discount {actual_discount} + shipping {actual_shipping} + tax {actual_tax}), "
             f"reported {actual_total} (diff: {difference})."
         )
 
@@ -115,6 +119,8 @@ def calculate_invoice_arithmetic(
         actual_tax=actual_tax,
         expected_discount=expected_discount,
         actual_discount=actual_discount,
+        expected_shipping=expected_shipping,
+        actual_shipping=actual_shipping,
         expected_total=expected_total,
         actual_total=actual_total,
         difference=difference,

@@ -104,6 +104,26 @@ class S3DocumentStore(DocumentStore):
         )
         return key
 
+    def upload_batch_document(
+        self,
+        batch_id: str,
+        document_id: str,
+        filename: str,
+        data: bytes,
+        content_type: str = "application/pdf",
+    ) -> str:
+        """Upload a raw batch invoice document to S3: batches/{batch_id}/documents/{document_id}/{filename}."""
+        bucket = self._ensure_bucket()
+        from app.services.batch_validator import generate_batch_key
+        key = generate_batch_key(batch_id, document_id, filename)
+        self._client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=data,
+            ContentType=content_type,
+        )
+        return key
+
     def download_document(self, key: str) -> bytes:
         """Download document content bytes by storage key."""
         bucket = self._ensure_bucket()

@@ -12,8 +12,8 @@ from fastapi import Depends, Header, Request
 
 from app.api.errors import AuthenticationError
 from app.config import Settings, get_settings
-from app.services.dynamodb import DynamoDBInvoiceRepository
-from app.services.interfaces import DocumentStore, InvoiceRepository, JobQueue
+from app.services.dynamodb import DynamoDBBatchRepository, DynamoDBInvoiceRepository
+from app.services.interfaces import BatchRepository, DocumentStore, InvoiceRepository, JobQueue
 from app.services.s3 import S3DocumentStore
 from app.services.sqs import SQSJobQueue
 
@@ -37,6 +37,13 @@ def get_invoice_repository(
 ) -> InvoiceRepository:
     """Provide invoice repository implementation (Amazon DynamoDB)."""
     return DynamoDBInvoiceRepository(settings=settings)
+
+
+def get_batch_repository(
+    settings: Annotated[Settings, Depends(get_current_settings)]
+) -> BatchRepository:
+    """Provide batch repository implementation (Amazon DynamoDB)."""
+    return DynamoDBBatchRepository(settings=settings)
 
 
 def get_job_queue(

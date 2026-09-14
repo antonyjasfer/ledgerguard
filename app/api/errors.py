@@ -113,6 +113,28 @@ def register_error_handlers(app: FastAPI) -> None:
             },
         )
 
+    @app.exception_handler(TypeError)
+    async def handle_type_error(request: Request, exc: TypeError):
+        req_id = get_request_id(request)
+        logger.info("Validation type error: %s, request_id=%s", exc, req_id)
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={
+                "error": "VALIDATION_ERROR",
+                "message": "Input validation failed for request payload.",
+                "request_id": req_id,
+                "details": {
+                    "validation_errors": [
+                        {
+                            "field": "body",
+                            "issue": str(exc),
+                            "type": "type_error",
+                        }
+                    ]
+                },
+            },
+        )
+
     @app.exception_handler(StarletteHTTPException)
     async def handle_starlette_http_exception(request: Request, exc: StarletteHTTPException):
         req_id = get_request_id(request)

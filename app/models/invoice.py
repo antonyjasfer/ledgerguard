@@ -38,7 +38,7 @@ class LineItem(BaseModel):
     description: str = Field(..., min_length=1, description="Description of the goods or services")
     quantity: Decimal = Field(default=Decimal("1"), ge=Decimal("0"), description="Quantity purchased")
     unit_price: Decimal = Field(..., ge=Decimal("0"), description="Unit price per item")
-    tax_rate: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0"), description="Line-level tax rate percentage")
+    tax_rate: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0"), description="Tax rate applied as percentage (e.g. 5.0 for 5%)")
     discount: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0"), description="Line-level discount amount")
 
     @field_validator("quantity", "unit_price", "tax_rate", "discount", mode="before")
@@ -51,32 +51,40 @@ class LineItem(BaseModel):
         raw = self.quantity * self.unit_price
         return raw.quantize(MONEY_QUANTUM, rounding=ROUNDING_STRATEGY)
 
+    def calculate_line_tax(self) -> Decimal:
+        """Calculate tax on the discounted subtotal."""
+        discounted = self.calculate_line_subtotal() - self.discount
+        raw = discounted * (self.tax_rate / Decimal("100"))
+        return raw.quantize(MONEY_QUANTUM, rounding=ROUNDING_STRATEGY)
+
+    def calculate_line_total(self) -> Decimal:
+        """Calculate total amount for this line item."""
+        return self.calculate_line_subtotal() - self.discount + self.calculate_line_tax()
+
 
 class Invoice(BaseModel):
-    """Accounts Payable Invoice representation with optional financial fields.
+    """Normalized internal canonical invoice model for LedgerGuard AP pipeline."""
 
-    Financial fields allow None to support incomplete or partially-extracted invoices
-    from upstream OCR/parsing stages without failing validation prematurely.
-    """
-
-    invoice_id: str = Field(..., min_length=1, description="Internal unique identifier")
-    invoice_number: str = Field(..., min_length=1, description="Vendor-supplied invoice number")
+    invoice_id: str = Field(..., min_length=1, description="Unique invoice transaction identifier")
+    invoice_number: str = Field(..., min_length=1, description="Vendor-supplied invoice reference number")
     vendor_id: str = Field(..., min_length=1, description="Vendor identifier")
-    vendor_name: str = Field(..., min_length=1, description="Vendor business name")
-    customer_name: str = Field(..., min_length=1, description="Bill-to customer name")
+    vendor_name: str = Field(..., min_length=1, description="Legal name of vendor")
+    customer_name: str = Field(..., min_length=1, description="Customer or organization billed")
     invoice_date: date = Field(..., description="Invoice issue date")
-    currency: str = Field(default="USD", min_length=3, max_length=3, description="ISO currency code")
+    due_date: date | None = Field(default=None, description="Payment due date")
+    currency: str = Field(default="USD", min_length=3, max_length=3, description="ISO-4217 currency code")
 
-    # Financial fields: Optional to allow INSUFFICIENT_DATA status during arithmetic verification
     subtotal: Decimal | None = Field(default=None, ge=Decimal("0"), description="Invoice-level subtotal")
     tax: Decimal | None = Field(default=None, ge=Decimal("0"), description="Invoice-level tax amount")
     discount: Decimal | None = Field(default=None, ge=Decimal("0"), description="Invoice-level discount amount")
+    shipping: Decimal | None = Field(default=Decimal("0"), ge=Decimal("0"), description="Invoice-level shipping amount")
     total: Decimal | None = Field(default=None, ge=Decimal("0"), description="Invoice-level grand total")
 
+    purchase_order_number: str | None = Field(default=None, description="Optional Purchase Order reference")
     line_items: list[LineItem] = Field(default_factory=list, description="List of invoiced line items")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Arbitrary invoice metadata")
 
-    @field_validator("subtotal", "tax", "discount", "total", mode="before")
+    @field_validator("subtotal", "tax", "discount", "shipping", "total", mode="before")
     @classmethod
     def check_no_float_financials(cls, v: Any, info: Any) -> Any:
         return _reject_float(v, info.field_name)

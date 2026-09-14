@@ -79,6 +79,7 @@ def to_domain_invoice(data: dict) -> Invoice:
         subtotal=Decimal(str(data["subtotal"])),
         tax=Decimal(str(data["tax"])),
         discount=Decimal(str(data.get("discount", 0))),
+        shipping=Decimal(str(data.get("shipping", 0))),
         total=Decimal(str(data["total"])),
         line_items=items,
     )

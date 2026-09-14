@@ -184,3 +184,118 @@ def test_arithmetic_tolerance():
 
     # Tolerance 0.05 passes
     assert calculate_invoice_arithmetic(inv, tolerance=Decimal("0.05")).passed is True
+
+
+def test_arithmetic_real_invoice_reference():
+    """Verify exact calculation on real corporate invoice reference (#8673 SuperStore).
+
+    Subtotal: 4699.20 (5 * 939.84)
+    Discount: 1879.68 (40%)
+    Shipping: 103.61
+    Tax: 0.00 (test representation; unstated in source PDF)
+    Total: 2923.13 (4699.20 - 1879.68 + 103.61 + 0.00 = 2923.13)
+    """
+    inv = Invoice(
+        invoice_id="INV-REAL-8673",
+        invoice_number="8673",
+        vendor_id="VEND-SUPERSTORE",
+        vendor_name="SuperStore",
+        customer_name="Alice McCarthy",
+        invoice_date=date(2012, 9, 29),
+        currency="USD",
+        subtotal=Decimal("4699.20"),
+        discount=Decimal("1879.68"),
+        shipping=Decimal("103.61"),
+        tax=Decimal("0.00"),
+        total=Decimal("2923.13"),
+        line_items=[
+            LineItem(
+                description="Office Star Executive Leather Armchair, Adjustable",
+                quantity=Decimal("5"),
+                unit_price=Decimal("939.84"),
+            )
+        ],
+    )
+    result = calculate_invoice_arithmetic(inv)
+
+    assert result.passed is True
+    assert result.status == VerificationStatus.PASS
+    assert result.expected_subtotal == Decimal("4699.20")
+    assert result.actual_subtotal == Decimal("4699.20")
+    assert result.expected_discount == Decimal("1879.68")
+    assert result.actual_discount == Decimal("1879.68")
+    assert result.expected_shipping == Decimal("103.61")
+    assert result.actual_shipping == Decimal("103.61")
+    assert result.expected_tax == Decimal("0.00")
+    assert result.actual_tax == Decimal("0.00")
+    assert result.expected_total == Decimal("2923.13")
+    assert result.actual_total == Decimal("2923.13")
+    assert result.difference == Decimal("0.00")
+
+
+def test_arithmetic_shipping_calculation_and_mismatch():
+    """Verify shipping impacts grand total and discrepancies are caught."""
+    inv = Invoice(
+        invoice_id="INV-SHIP-CALC",
+        invoice_number="SHIP-001",
+        vendor_id="VEND-01",
+        vendor_name="Acme",
+        customer_name="Corp",
+        invoice_date=date(2026, 1, 1),
+        currency="USD",
+        subtotal=Decimal("1000.00"),
+        discount=Decimal("100.00"),
+        shipping=Decimal("50.00"),
+        tax=Decimal("80.00"),
+        # Expected: 1000 - 100 + 50 + 80 = 1030.00, but declared 1000.00
+        total=Decimal("1000.00"),
+        line_items=[
+            LineItem(
+                description="Servers",
+                quantity=Decimal("10"),
+                unit_price=Decimal("100.00"),
+            )
+        ],
+    )
+    result = calculate_invoice_arithmetic(inv)
+
+    assert result.passed is False
+    assert result.status == VerificationStatus.FAIL
+    assert result.expected_total == Decimal("1030.00")
+    assert result.actual_total == Decimal("1000.00")
+    assert result.difference == Decimal("30.00")
+    assert any("shipping 50.00" in d for d in result.details)
+
+
+def test_arithmetic_backward_compatibility_old_invoice_without_shipping():
+    """Verify legacy invoice without shipping computes identically with default 0 shipping."""
+    inv = Invoice(
+        invoice_id="INV-LEGACY-01",
+        invoice_number="LEGACY-01",
+        vendor_id="VEND-01",
+        vendor_name="Acme",
+        customer_name="Corp",
+        invoice_date=date(2026, 1, 1),
+        currency="USD",
+        subtotal=Decimal("500.00"),
+        discount=Decimal("50.00"),
+        tax=Decimal("40.00"),
+        # Expected: 500 - 50 + 0 + 40 = 490.00
+        total=Decimal("490.00"),
+        line_items=[
+            LineItem(
+                description="Consulting",
+                quantity=Decimal("5"),
+                unit_price=Decimal("100.00"),
+            )
+        ],
+    )
+    result = calculate_invoice_arithmetic(inv)
+
+    assert result.passed is True
+    assert result.status == VerificationStatus.PASS
+    assert result.expected_shipping == Decimal("0.00")
+    assert result.actual_shipping == Decimal("0.00")
+    assert result.expected_total == Decimal("490.00")
+    assert result.actual_total == Decimal("490.00")
+    assert result.difference == Decimal("0.00")

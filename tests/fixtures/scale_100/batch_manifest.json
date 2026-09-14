@@ -1,0 +1,2783 @@
+{
+  "summary": {
+    "count": 100,
+    "scenarios": {
+      "CLEAN_VALID": 80,
+      "HIGH_VALUE_OR_NEW_VENDOR": 10,
+      "DUPLICATE": 5,
+      "ARITHMETIC_MISMATCH": 3,
+      "CORRUPT_OR_INCOMPLETE": 2
+    },
+    "total_value": "66657.20",
+    "total_subtotal": "60215.00",
+    "total_tax": "4817.20"
+  },
+  "invoices": [
+    {
+      "index": 0,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010000",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "67.50",
+          "amount": "67.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "45.00",
+          "amount": "135.00"
+        }
+      ],
+      "subtotal": "202.50",
+      "tax": "16.20",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "233.70",
+      "filename": "INV-SCALE-010000.pdf"
+    },
+    {
+      "index": 1,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010001",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "64.50",
+          "amount": "193.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "59.00",
+          "amount": "118.00"
+        }
+      ],
+      "subtotal": "311.50",
+      "tax": "24.92",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "351.42",
+      "filename": "INV-SCALE-010001.pdf"
+    },
+    {
+      "index": 2,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010002",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "54.50",
+          "amount": "272.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "41.00",
+          "amount": "41.00"
+        }
+      ],
+      "subtotal": "313.50",
+      "tax": "25.08",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "353.58",
+      "filename": "INV-SCALE-010002.pdf"
+    },
+    {
+      "index": 3,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010003",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "51.50",
+          "amount": "206.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "35.00",
+          "amount": "105.00"
+        }
+      ],
+      "subtotal": "311.00",
+      "tax": "24.88",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "350.88",
+      "filename": "INV-SCALE-010003.pdf"
+    },
+    {
+      "index": 4,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010004",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "22.50",
+          "amount": "90.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "70.00",
+          "amount": "140.00"
+        }
+      ],
+      "subtotal": "230.00",
+      "tax": "18.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "263.40",
+      "filename": "INV-SCALE-010004.pdf"
+    },
+    {
+      "index": 5,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010005",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "47.50",
+          "amount": "47.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "66.00",
+          "amount": "264.00"
+        }
+      ],
+      "subtotal": "311.50",
+      "tax": "24.92",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "351.42",
+      "filename": "INV-SCALE-010005.pdf"
+    },
+    {
+      "index": 6,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010006",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "28.50",
+          "amount": "85.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "80.00",
+          "amount": "240.00"
+        }
+      ],
+      "subtotal": "325.50",
+      "tax": "26.04",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "366.54",
+      "filename": "INV-SCALE-010006.pdf"
+    },
+    {
+      "index": 7,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010007",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "46.50",
+          "amount": "139.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "50.00",
+          "amount": "50.00"
+        }
+      ],
+      "subtotal": "189.50",
+      "tax": "15.16",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "219.66",
+      "filename": "INV-SCALE-010007.pdf"
+    },
+    {
+      "index": 8,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010008",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "43.50",
+          "amount": "130.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "74.00",
+          "amount": "148.00"
+        }
+      ],
+      "subtotal": "278.50",
+      "tax": "22.28",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "315.78",
+      "filename": "INV-SCALE-010008.pdf"
+    },
+    {
+      "index": 9,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010009",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "55.50",
+          "amount": "277.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "45.00",
+          "amount": "90.00"
+        }
+      ],
+      "subtotal": "367.50",
+      "tax": "29.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "411.90",
+      "filename": "INV-SCALE-010009.pdf"
+    },
+    {
+      "index": 10,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010010",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "76.50",
+          "amount": "76.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "84.00",
+          "amount": "336.00"
+        }
+      ],
+      "subtotal": "412.50",
+      "tax": "33.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "460.50",
+      "filename": "INV-SCALE-010010.pdf"
+    },
+    {
+      "index": 11,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010011",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "49.50",
+          "amount": "99.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "89.00",
+          "amount": "356.00"
+        }
+      ],
+      "subtotal": "455.00",
+      "tax": "36.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "506.40",
+      "filename": "INV-SCALE-010011.pdf"
+    },
+    {
+      "index": 12,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010012",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "55.50",
+          "amount": "222.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "60.00",
+          "amount": "180.00"
+        }
+      ],
+      "subtotal": "402.00",
+      "tax": "32.16",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "449.16",
+      "filename": "INV-SCALE-010012.pdf"
+    },
+    {
+      "index": 13,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010013",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "29.50",
+          "amount": "59.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "83.00",
+          "amount": "249.00"
+        }
+      ],
+      "subtotal": "308.00",
+      "tax": "24.64",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "347.64",
+      "filename": "INV-SCALE-010013.pdf"
+    },
+    {
+      "index": 14,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010014",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "50.50",
+          "amount": "50.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "79.00",
+          "amount": "237.00"
+        }
+      ],
+      "subtotal": "287.50",
+      "tax": "23.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "325.50",
+      "filename": "INV-SCALE-010014.pdf"
+    },
+    {
+      "index": 15,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010015",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "57.50",
+          "amount": "172.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "44.00",
+          "amount": "44.00"
+        }
+      ],
+      "subtotal": "216.50",
+      "tax": "17.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "248.82",
+      "filename": "INV-SCALE-010015.pdf"
+    },
+    {
+      "index": 16,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010016",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "33.50",
+          "amount": "67.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "32.00",
+          "amount": "64.00"
+        }
+      ],
+      "subtotal": "131.00",
+      "tax": "10.48",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "156.48",
+      "filename": "INV-SCALE-010016.pdf"
+    },
+    {
+      "index": 17,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010017",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "79.50",
+          "amount": "79.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "31.00",
+          "amount": "124.00"
+        }
+      ],
+      "subtotal": "203.50",
+      "tax": "16.28",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "234.78",
+      "filename": "INV-SCALE-010017.pdf"
+    },
+    {
+      "index": 18,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010018",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "56.50",
+          "amount": "169.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "46.00",
+          "amount": "92.00"
+        }
+      ],
+      "subtotal": "261.50",
+      "tax": "20.92",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "297.42",
+      "filename": "INV-SCALE-010018.pdf"
+    },
+    {
+      "index": 19,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010019",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "55.50",
+          "amount": "111.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "81.00",
+          "amount": "162.00"
+        }
+      ],
+      "subtotal": "273.00",
+      "tax": "21.84",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "309.84",
+      "filename": "INV-SCALE-010019.pdf"
+    },
+    {
+      "index": 20,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010020",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "24.50",
+          "amount": "49.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "87.00",
+          "amount": "174.00"
+        }
+      ],
+      "subtotal": "223.00",
+      "tax": "17.84",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "255.84",
+      "filename": "INV-SCALE-010020.pdf"
+    },
+    {
+      "index": 21,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010021",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "38.50",
+          "amount": "154.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "60.00",
+          "amount": "180.00"
+        }
+      ],
+      "subtotal": "334.00",
+      "tax": "26.72",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "375.72",
+      "filename": "INV-SCALE-010021.pdf"
+    },
+    {
+      "index": 22,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010022",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "60.50",
+          "amount": "60.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "64.00",
+          "amount": "256.00"
+        }
+      ],
+      "subtotal": "316.50",
+      "tax": "25.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "356.82",
+      "filename": "INV-SCALE-010022.pdf"
+    },
+    {
+      "index": 23,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010023",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "38.50",
+          "amount": "115.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "58.00",
+          "amount": "116.00"
+        }
+      ],
+      "subtotal": "231.50",
+      "tax": "18.52",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "265.02",
+      "filename": "INV-SCALE-010023.pdf"
+    },
+    {
+      "index": 24,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010024",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "47.50",
+          "amount": "142.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "80.00",
+          "amount": "160.00"
+        }
+      ],
+      "subtotal": "302.50",
+      "tax": "24.20",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "341.70",
+      "filename": "INV-SCALE-010024.pdf"
+    },
+    {
+      "index": 25,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010025",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "69.50",
+          "amount": "69.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "59.00",
+          "amount": "236.00"
+        }
+      ],
+      "subtotal": "305.50",
+      "tax": "24.44",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "344.94",
+      "filename": "INV-SCALE-010025.pdf"
+    },
+    {
+      "index": 26,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010026",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "27.50",
+          "amount": "137.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "57.00",
+          "amount": "114.00"
+        }
+      ],
+      "subtotal": "251.50",
+      "tax": "20.12",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "286.62",
+      "filename": "INV-SCALE-010026.pdf"
+    },
+    {
+      "index": 27,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010027",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "71.50",
+          "amount": "71.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "34.00",
+          "amount": "68.00"
+        }
+      ],
+      "subtotal": "139.50",
+      "tax": "11.16",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "165.66",
+      "filename": "INV-SCALE-010027.pdf"
+    },
+    {
+      "index": 28,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010028",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "64.50",
+          "amount": "193.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "58.00",
+          "amount": "232.00"
+        }
+      ],
+      "subtotal": "425.50",
+      "tax": "34.04",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "474.54",
+      "filename": "INV-SCALE-010028.pdf"
+    },
+    {
+      "index": 29,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010029",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "59.50",
+          "amount": "297.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "46.00",
+          "amount": "46.00"
+        }
+      ],
+      "subtotal": "343.50",
+      "tax": "27.48",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "385.98",
+      "filename": "INV-SCALE-010029.pdf"
+    },
+    {
+      "index": 30,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010030",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "67.50",
+          "amount": "337.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "52.00",
+          "amount": "104.00"
+        }
+      ],
+      "subtotal": "441.50",
+      "tax": "35.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "491.82",
+      "filename": "INV-SCALE-010030.pdf"
+    },
+    {
+      "index": 31,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010031",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "52.50",
+          "amount": "52.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "66.00",
+          "amount": "264.00"
+        }
+      ],
+      "subtotal": "316.50",
+      "tax": "25.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "356.82",
+      "filename": "INV-SCALE-010031.pdf"
+    },
+    {
+      "index": 32,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010032",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "75.50",
+          "amount": "377.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "50.00",
+          "amount": "50.00"
+        }
+      ],
+      "subtotal": "427.50",
+      "tax": "34.20",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "476.70",
+      "filename": "INV-SCALE-010032.pdf"
+    },
+    {
+      "index": 33,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010033",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "47.50",
+          "amount": "237.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "32.00",
+          "amount": "128.00"
+        }
+      ],
+      "subtotal": "365.50",
+      "tax": "29.24",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "409.74",
+      "filename": "INV-SCALE-010033.pdf"
+    },
+    {
+      "index": 34,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010034",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "80.50",
+          "amount": "322.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "42.00",
+          "amount": "168.00"
+        }
+      ],
+      "subtotal": "490.00",
+      "tax": "39.20",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "544.20",
+      "filename": "INV-SCALE-010034.pdf"
+    },
+    {
+      "index": 35,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010035",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "32.50",
+          "amount": "97.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "42.00",
+          "amount": "84.00"
+        }
+      ],
+      "subtotal": "181.50",
+      "tax": "14.52",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "211.02",
+      "filename": "INV-SCALE-010035.pdf"
+    },
+    {
+      "index": 36,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010036",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "39.50",
+          "amount": "39.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "77.00",
+          "amount": "231.00"
+        }
+      ],
+      "subtotal": "270.50",
+      "tax": "21.64",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "307.14",
+      "filename": "INV-SCALE-010036.pdf"
+    },
+    {
+      "index": 37,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010037",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "42.50",
+          "amount": "170.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "45.00",
+          "amount": "90.00"
+        }
+      ],
+      "subtotal": "260.00",
+      "tax": "20.80",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "295.80",
+      "filename": "INV-SCALE-010037.pdf"
+    },
+    {
+      "index": 38,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010038",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "54.50",
+          "amount": "218.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "53.00",
+          "amount": "212.00"
+        }
+      ],
+      "subtotal": "430.00",
+      "tax": "34.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "479.40",
+      "filename": "INV-SCALE-010038.pdf"
+    },
+    {
+      "index": 39,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010039",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "41.50",
+          "amount": "166.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "60.00",
+          "amount": "240.00"
+        }
+      ],
+      "subtotal": "406.00",
+      "tax": "32.48",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "453.48",
+      "filename": "INV-SCALE-010039.pdf"
+    },
+    {
+      "index": 40,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010040",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "52.50",
+          "amount": "210.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "82.00",
+          "amount": "246.00"
+        }
+      ],
+      "subtotal": "456.00",
+      "tax": "36.48",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "507.48",
+      "filename": "INV-SCALE-010040.pdf"
+    },
+    {
+      "index": 41,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010041",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "25.50",
+          "amount": "102.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "54.00",
+          "amount": "108.00"
+        }
+      ],
+      "subtotal": "210.00",
+      "tax": "16.80",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "241.80",
+      "filename": "INV-SCALE-010041.pdf"
+    },
+    {
+      "index": 42,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010042",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "51.50",
+          "amount": "51.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "63.00",
+          "amount": "63.00"
+        }
+      ],
+      "subtotal": "114.50",
+      "tax": "9.16",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "138.66",
+      "filename": "INV-SCALE-010042.pdf"
+    },
+    {
+      "index": 43,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010043",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "72.50",
+          "amount": "362.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "50.00",
+          "amount": "50.00"
+        }
+      ],
+      "subtotal": "412.50",
+      "tax": "33.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "460.50",
+      "filename": "INV-SCALE-010043.pdf"
+    },
+    {
+      "index": 44,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010044",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "73.50",
+          "amount": "367.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "77.00",
+          "amount": "231.00"
+        }
+      ],
+      "subtotal": "598.50",
+      "tax": "47.88",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "661.38",
+      "filename": "INV-SCALE-010044.pdf"
+    },
+    {
+      "index": 45,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010045",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "76.50",
+          "amount": "153.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "47.00",
+          "amount": "47.00"
+        }
+      ],
+      "subtotal": "200.00",
+      "tax": "16.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "231.00",
+      "filename": "INV-SCALE-010045.pdf"
+    },
+    {
+      "index": 46,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010046",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "41.50",
+          "amount": "83.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "70.00",
+          "amount": "140.00"
+        }
+      ],
+      "subtotal": "223.00",
+      "tax": "17.84",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "255.84",
+      "filename": "INV-SCALE-010046.pdf"
+    },
+    {
+      "index": 47,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010047",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "65.50",
+          "amount": "327.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "38.00",
+          "amount": "114.00"
+        }
+      ],
+      "subtotal": "441.50",
+      "tax": "35.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "491.82",
+      "filename": "INV-SCALE-010047.pdf"
+    },
+    {
+      "index": 48,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010048",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "50.50",
+          "amount": "50.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "70.00",
+          "amount": "210.00"
+        }
+      ],
+      "subtotal": "260.50",
+      "tax": "20.84",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "296.34",
+      "filename": "INV-SCALE-010048.pdf"
+    },
+    {
+      "index": 49,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010049",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "31.50",
+          "amount": "157.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "55.00",
+          "amount": "110.00"
+        }
+      ],
+      "subtotal": "267.50",
+      "tax": "21.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "303.90",
+      "filename": "INV-SCALE-010049.pdf"
+    },
+    {
+      "index": 50,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010050",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "56.50",
+          "amount": "282.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "81.00",
+          "amount": "243.00"
+        }
+      ],
+      "subtotal": "525.50",
+      "tax": "42.04",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "582.54",
+      "filename": "INV-SCALE-010050.pdf"
+    },
+    {
+      "index": 51,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010051",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "66.50",
+          "amount": "332.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "86.00",
+          "amount": "258.00"
+        }
+      ],
+      "subtotal": "590.50",
+      "tax": "47.24",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "652.74",
+      "filename": "INV-SCALE-010051.pdf"
+    },
+    {
+      "index": 52,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010052",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "27.50",
+          "amount": "55.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "49.00",
+          "amount": "147.00"
+        }
+      ],
+      "subtotal": "202.00",
+      "tax": "16.16",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "233.16",
+      "filename": "INV-SCALE-010052.pdf"
+    },
+    {
+      "index": 53,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010053",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "67.50",
+          "amount": "337.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "90.00",
+          "amount": "180.00"
+        }
+      ],
+      "subtotal": "517.50",
+      "tax": "41.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "573.90",
+      "filename": "INV-SCALE-010053.pdf"
+    },
+    {
+      "index": 54,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010054",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "78.50",
+          "amount": "235.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "89.00",
+          "amount": "356.00"
+        }
+      ],
+      "subtotal": "591.50",
+      "tax": "47.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "653.82",
+      "filename": "INV-SCALE-010054.pdf"
+    },
+    {
+      "index": 55,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010055",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "71.50",
+          "amount": "286.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "88.00",
+          "amount": "264.00"
+        }
+      ],
+      "subtotal": "550.00",
+      "tax": "44.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "609.00",
+      "filename": "INV-SCALE-010055.pdf"
+    },
+    {
+      "index": 56,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010056",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "73.50",
+          "amount": "367.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "52.00",
+          "amount": "52.00"
+        }
+      ],
+      "subtotal": "419.50",
+      "tax": "33.56",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "468.06",
+      "filename": "INV-SCALE-010056.pdf"
+    },
+    {
+      "index": 57,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010057",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "32.50",
+          "amount": "130.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "44.00",
+          "amount": "88.00"
+        }
+      ],
+      "subtotal": "218.00",
+      "tax": "17.44",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "250.44",
+      "filename": "INV-SCALE-010057.pdf"
+    },
+    {
+      "index": 58,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010058",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 4,
+          "unit_price": "49.50",
+          "amount": "198.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "75.00",
+          "amount": "150.00"
+        }
+      ],
+      "subtotal": "348.00",
+      "tax": "27.84",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "390.84",
+      "filename": "INV-SCALE-010058.pdf"
+    },
+    {
+      "index": 59,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010059",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "78.50",
+          "amount": "157.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "59.00",
+          "amount": "177.00"
+        }
+      ],
+      "subtotal": "334.00",
+      "tax": "26.72",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "375.72",
+      "filename": "INV-SCALE-010059.pdf"
+    },
+    {
+      "index": 60,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010060",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "42.50",
+          "amount": "212.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "65.00",
+          "amount": "130.00"
+        }
+      ],
+      "subtotal": "342.50",
+      "tax": "27.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "384.90",
+      "filename": "INV-SCALE-010060.pdf"
+    },
+    {
+      "index": 61,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010061",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "64.50",
+          "amount": "129.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "88.00",
+          "amount": "88.00"
+        }
+      ],
+      "subtotal": "217.00",
+      "tax": "17.36",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "249.36",
+      "filename": "INV-SCALE-010061.pdf"
+    },
+    {
+      "index": 62,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010062",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "66.50",
+          "amount": "133.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "55.00",
+          "amount": "110.00"
+        }
+      ],
+      "subtotal": "243.00",
+      "tax": "19.44",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "277.44",
+      "filename": "INV-SCALE-010062.pdf"
+    },
+    {
+      "index": 63,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010063",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "57.50",
+          "amount": "172.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "90.00",
+          "amount": "90.00"
+        }
+      ],
+      "subtotal": "262.50",
+      "tax": "21.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "298.50",
+      "filename": "INV-SCALE-010063.pdf"
+    },
+    {
+      "index": 64,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010064",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "55.50",
+          "amount": "55.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "33.00",
+          "amount": "132.00"
+        }
+      ],
+      "subtotal": "187.50",
+      "tax": "15.00",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "217.50",
+      "filename": "INV-SCALE-010064.pdf"
+    },
+    {
+      "index": 65,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010065",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "57.50",
+          "amount": "287.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "60.00",
+          "amount": "240.00"
+        }
+      ],
+      "subtotal": "527.50",
+      "tax": "42.20",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "584.70",
+      "filename": "INV-SCALE-010065.pdf"
+    },
+    {
+      "index": 66,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010066",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 1,
+          "unit_price": "76.50",
+          "amount": "76.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "76.00",
+          "amount": "304.00"
+        }
+      ],
+      "subtotal": "380.50",
+      "tax": "30.44",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "425.94",
+      "filename": "INV-SCALE-010066.pdf"
+    },
+    {
+      "index": 67,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010067",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "49.50",
+          "amount": "99.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "65.00",
+          "amount": "260.00"
+        }
+      ],
+      "subtotal": "359.00",
+      "tax": "28.72",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "402.72",
+      "filename": "INV-SCALE-010067.pdf"
+    },
+    {
+      "index": 68,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010068",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "35.50",
+          "amount": "177.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "60.00",
+          "amount": "240.00"
+        }
+      ],
+      "subtotal": "417.50",
+      "tax": "33.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "465.90",
+      "filename": "INV-SCALE-010068.pdf"
+    },
+    {
+      "index": 69,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010069",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "51.50",
+          "amount": "154.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "55.00",
+          "amount": "110.00"
+        }
+      ],
+      "subtotal": "264.50",
+      "tax": "21.16",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "300.66",
+      "filename": "INV-SCALE-010069.pdf"
+    },
+    {
+      "index": 70,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010070",
+      "vendor_id": "vend_04",
+      "vendor_name": "Global Logistics Inc",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "59.50",
+          "amount": "297.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "74.00",
+          "amount": "222.00"
+        }
+      ],
+      "subtotal": "519.50",
+      "tax": "41.56",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "576.06",
+      "filename": "INV-SCALE-010070.pdf"
+    },
+    {
+      "index": 71,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010071",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "21.50",
+          "amount": "64.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "65.00",
+          "amount": "260.00"
+        }
+      ],
+      "subtotal": "324.50",
+      "tax": "25.96",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "365.46",
+      "filename": "INV-SCALE-010071.pdf"
+    },
+    {
+      "index": 72,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010072",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "26.50",
+          "amount": "132.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "72.00",
+          "amount": "216.00"
+        }
+      ],
+      "subtotal": "348.50",
+      "tax": "27.88",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "391.38",
+      "filename": "INV-SCALE-010072.pdf"
+    },
+    {
+      "index": 73,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010073",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "69.50",
+          "amount": "139.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 1,
+          "unit_price": "64.00",
+          "amount": "64.00"
+        }
+      ],
+      "subtotal": "203.00",
+      "tax": "16.24",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "234.24",
+      "filename": "INV-SCALE-010073.pdf"
+    },
+    {
+      "index": 74,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010074",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 5,
+          "unit_price": "66.50",
+          "amount": "332.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "30.00",
+          "amount": "90.00"
+        }
+      ],
+      "subtotal": "422.50",
+      "tax": "33.80",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "471.30",
+      "filename": "INV-SCALE-010074.pdf"
+    },
+    {
+      "index": 75,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010075",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "30.50",
+          "amount": "61.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 2,
+          "unit_price": "55.00",
+          "amount": "110.00"
+        }
+      ],
+      "subtotal": "171.00",
+      "tax": "13.68",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "199.68",
+      "filename": "INV-SCALE-010075.pdf"
+    },
+    {
+      "index": 76,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010076",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 3,
+          "unit_price": "26.50",
+          "amount": "79.50"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 3,
+          "unit_price": "48.00",
+          "amount": "144.00"
+        }
+      ],
+      "subtotal": "223.50",
+      "tax": "17.88",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "256.38",
+      "filename": "INV-SCALE-010076.pdf"
+    },
+    {
+      "index": 77,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010077",
+      "vendor_id": "vend_03",
+      "vendor_name": "Nova Advisory Partners",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "67.50",
+          "amount": "135.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "36.00",
+          "amount": "144.00"
+        }
+      ],
+      "subtotal": "279.00",
+      "tax": "22.32",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "316.32",
+      "filename": "INV-SCALE-010077.pdf"
+    },
+    {
+      "index": 78,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010078",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "32.50",
+          "amount": "65.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "35.00",
+          "amount": "140.00"
+        }
+      ],
+      "subtotal": "205.00",
+      "tax": "16.40",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "236.40",
+      "filename": "INV-SCALE-010078.pdf"
+    },
+    {
+      "index": 79,
+      "scenario": "CLEAN_VALID",
+      "invoice_number": "INV-SCALE-010079",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Standard Hardware Supplies",
+          "quantity": 2,
+          "unit_price": "57.50",
+          "amount": "115.00"
+        },
+        {
+          "description": "Technical Maintenance Service",
+          "quantity": 4,
+          "unit_price": "70.00",
+          "amount": "280.00"
+        }
+      ],
+      "subtotal": "395.00",
+      "tax": "31.60",
+      "shipping": "15.00",
+      "discount": "0.00",
+      "total": "441.60",
+      "filename": "INV-SCALE-010079.pdf"
+    },
+    {
+      "index": 80,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010080",
+      "vendor_id": "vend_new_03",
+      "vendor_name": "Aether Industrial Works",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 4,
+          "unit_price": "120.00",
+          "amount": "480.00"
+        }
+      ],
+      "subtotal": "480.00",
+      "tax": "38.40",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "518.40",
+      "filename": "INV-SCALE-010080.pdf"
+    },
+    {
+      "index": 81,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010081",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Enterprise Infrastructure Server",
+          "quantity": 44,
+          "unit_price": "254.00",
+          "amount": "11176.00"
+        }
+      ],
+      "subtotal": "11176.00",
+      "tax": "894.08",
+      "shipping": "150.00",
+      "discount": "100.00",
+      "total": "12120.08",
+      "filename": "INV-SCALE-010081.pdf"
+    },
+    {
+      "index": 82,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010082",
+      "vendor_id": "vend_new_03",
+      "vendor_name": "Aether Industrial Works",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 2,
+          "unit_price": "120.00",
+          "amount": "240.00"
+        }
+      ],
+      "subtotal": "240.00",
+      "tax": "19.20",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "259.20",
+      "filename": "INV-SCALE-010082.pdf"
+    },
+    {
+      "index": 83,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010083",
+      "vendor_id": "vend_new_01",
+      "vendor_name": "Quantum Edge Dynamics",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 6,
+          "unit_price": "120.00",
+          "amount": "720.00"
+        }
+      ],
+      "subtotal": "720.00",
+      "tax": "57.60",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "777.60",
+      "filename": "INV-SCALE-010083.pdf"
+    },
+    {
+      "index": 84,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010084",
+      "vendor_id": "vend_new_03",
+      "vendor_name": "Aether Industrial Works",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 6,
+          "unit_price": "120.00",
+          "amount": "720.00"
+        }
+      ],
+      "subtotal": "720.00",
+      "tax": "57.60",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "777.60",
+      "filename": "INV-SCALE-010084.pdf"
+    },
+    {
+      "index": 85,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010085",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Enterprise Infrastructure Server",
+          "quantity": 38,
+          "unit_price": "294.00",
+          "amount": "11172.00"
+        }
+      ],
+      "subtotal": "11172.00",
+      "tax": "893.76",
+      "shipping": "150.00",
+      "discount": "100.00",
+      "total": "12115.76",
+      "filename": "INV-SCALE-010085.pdf"
+    },
+    {
+      "index": 86,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010086",
+      "vendor_id": "vend_new_01",
+      "vendor_name": "Quantum Edge Dynamics",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 5,
+          "unit_price": "120.00",
+          "amount": "600.00"
+        }
+      ],
+      "subtotal": "600.00",
+      "tax": "48.00",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "648.00",
+      "filename": "INV-SCALE-010086.pdf"
+    },
+    {
+      "index": 87,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010087",
+      "vendor_id": "vend_new_03",
+      "vendor_name": "Aether Industrial Works",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 4,
+          "unit_price": "120.00",
+          "amount": "480.00"
+        }
+      ],
+      "subtotal": "480.00",
+      "tax": "38.40",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "518.40",
+      "filename": "INV-SCALE-010087.pdf"
+    },
+    {
+      "index": 88,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010088",
+      "vendor_id": "vend_new_02",
+      "vendor_name": "Vanguard Cybernetics",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Prototype Consultation",
+          "quantity": 5,
+          "unit_price": "120.00",
+          "amount": "600.00"
+        }
+      ],
+      "subtotal": "600.00",
+      "tax": "48.00",
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "648.00",
+      "filename": "INV-SCALE-010088.pdf"
+    },
+    {
+      "index": 89,
+      "scenario": "HIGH_VALUE_OR_NEW_VENDOR",
+      "invoice_number": "INV-SCALE-010089",
+      "vendor_id": "vend_05",
+      "vendor_name": "SuperStore",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Enterprise Infrastructure Server",
+          "quantity": 22,
+          "unit_price": "250.00",
+          "amount": "5500.00"
+        }
+      ],
+      "subtotal": "5500.00",
+      "tax": "440.00",
+      "shipping": "150.00",
+      "discount": "100.00",
+      "total": "5990.00",
+      "filename": "INV-SCALE-010089.pdf"
+    },
+    {
+      "index": 90,
+      "scenario": "DUPLICATE",
+      "invoice_number": "INV-SCALE-010080",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Duplicate Office Supplies",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "amount": "200.00"
+        }
+      ],
+      "subtotal": "200.00",
+      "tax": "16.00",
+      "shipping": "10.00",
+      "discount": "0.00",
+      "total": "226.00",
+      "filename": "INV-SCALE-010080.pdf"
+    },
+    {
+      "index": 91,
+      "scenario": "DUPLICATE",
+      "invoice_number": "INV-SCALE-010080",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Duplicate Office Supplies",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "amount": "200.00"
+        }
+      ],
+      "subtotal": "200.00",
+      "tax": "16.00",
+      "shipping": "10.00",
+      "discount": "0.00",
+      "total": "226.00",
+      "filename": "INV-SCALE-010080.pdf"
+    },
+    {
+      "index": 92,
+      "scenario": "DUPLICATE",
+      "invoice_number": "INV-SCALE-010080",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Duplicate Office Supplies",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "amount": "200.00"
+        }
+      ],
+      "subtotal": "200.00",
+      "tax": "16.00",
+      "shipping": "10.00",
+      "discount": "0.00",
+      "total": "226.00",
+      "filename": "INV-SCALE-010080.pdf"
+    },
+    {
+      "index": 93,
+      "scenario": "DUPLICATE",
+      "invoice_number": "INV-SCALE-010080",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Duplicate Office Supplies",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "amount": "200.00"
+        }
+      ],
+      "subtotal": "200.00",
+      "tax": "16.00",
+      "shipping": "10.00",
+      "discount": "0.00",
+      "total": "226.00",
+      "filename": "INV-SCALE-010080.pdf"
+    },
+    {
+      "index": 94,
+      "scenario": "DUPLICATE",
+      "invoice_number": "INV-SCALE-010080",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Duplicate Office Supplies",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "amount": "200.00"
+        }
+      ],
+      "subtotal": "200.00",
+      "tax": "16.00",
+      "shipping": "10.00",
+      "discount": "0.00",
+      "total": "226.00",
+      "filename": "INV-SCALE-010080.pdf"
+    },
+    {
+      "index": 95,
+      "scenario": "ARITHMETIC_MISMATCH",
+      "invoice_number": "INV-SCALE-010095",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Logistics Dispatch Fee",
+          "quantity": 1,
+          "unit_price": "500.00",
+          "amount": "500.00"
+        }
+      ],
+      "subtotal": "500.00",
+      "tax": "40.00",
+      "shipping": "25.00",
+      "discount": "0.00",
+      "total": "615.00",
+      "filename": "INV-SCALE-010095.pdf"
+    },
+    {
+      "index": 96,
+      "scenario": "ARITHMETIC_MISMATCH",
+      "invoice_number": "INV-SCALE-010096",
+      "vendor_id": "vend_02",
+      "vendor_name": "Apex Solutions",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Logistics Dispatch Fee",
+          "quantity": 1,
+          "unit_price": "500.00",
+          "amount": "500.00"
+        }
+      ],
+      "subtotal": "500.00",
+      "tax": "40.00",
+      "shipping": "25.00",
+      "discount": "0.00",
+      "total": "615.00",
+      "filename": "INV-SCALE-010096.pdf"
+    },
+    {
+      "index": 97,
+      "scenario": "ARITHMETIC_MISMATCH",
+      "invoice_number": "INV-SCALE-010097",
+      "vendor_id": "vend_01",
+      "vendor_name": "Acme Corp",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Logistics Dispatch Fee",
+          "quantity": 1,
+          "unit_price": "500.00",
+          "amount": "500.00"
+        }
+      ],
+      "subtotal": "500.00",
+      "tax": "40.00",
+      "shipping": "25.00",
+      "discount": "0.00",
+      "total": "615.00",
+      "filename": "INV-SCALE-010097.pdf"
+    },
+    {
+      "index": 98,
+      "scenario": "CORRUPT_OR_INCOMPLETE",
+      "invoice_number": "INV-CORRUPT-010098",
+      "vendor_id": "vend_unknown",
+      "vendor_name": "Unknown Partner",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [],
+      "subtotal": "0.00",
+      "tax": null,
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "0.00",
+      "filename": "INV-CORRUPT-010098.pdf"
+    },
+    {
+      "index": 99,
+      "scenario": "CORRUPT_OR_INCOMPLETE",
+      "invoice_number": "INV-CORRUPT-010099",
+      "vendor_id": "vend_unknown",
+      "vendor_name": "Unknown Partner",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "line_items": [],
+      "subtotal": "0.00",
+      "tax": null,
+      "shipping": "0.00",
+      "discount": "0.00",
+      "total": "0.00",
+      "filename": "INV-CORRUPT-010099.pdf"
+    }
+  ]
+}

@@ -72,6 +72,29 @@ def test_create_invoice_rejects_floating_point(client, auth_headers):
     assert data["error"] == "VALIDATION_ERROR"
 
 
+def test_create_invoice_rejects_float_in_line_items(client, auth_headers):
+    """Financial fields in line items must strictly reject float types with HTTP 422."""
+    payload = {
+        "invoice_id": "INV-LINE-FLOAT",
+        "invoice_number": "ACME-LINE-FLOAT",
+        "vendor_id": "VEND-01",
+        "vendor_name": "Acme Corp",
+        "invoice_date": "2026-03-01",
+        "line_items": [
+            {
+                "description": "Item",
+                "quantity": 1,
+                "unit_price": 17.94,  # float literal
+            }
+        ],
+    }
+
+    response = client.post("/invoices", json=payload, headers=auth_headers)
+    assert response.status_code == 422
+    data = response.json()
+    assert data["error"] == "VALIDATION_ERROR"
+
+
 def test_create_invoice_idempotency_queued(client, mock_repo, mock_queue, auth_headers):
     """Re-submitting an already queued invoice safely returns existing job without duplicate dispatch."""
     payload = {
@@ -123,3 +146,76 @@ def test_create_invoice_idempotency_terminal_conflict(client, mock_repo, auth_he
     assert response.status_code == 409
     assert response.json()["error"] == "CONFLICT"
     assert "terminal state" in response.json()["message"]
+
+
+def test_create_invoice_with_shipping_and_get_status(client, mock_repo, mock_queue, auth_headers):
+    """Invoice ingestion accepts shipping, persists it, and returns it via GET /invoices/{id}."""
+    payload = {
+        "invoice_id": "INV-SHIP-API-01",
+        "invoice_number": "8673",
+        "vendor_id": "VEND-SUPERSTORE",
+        "vendor_name": "SuperStore",
+        "customer_name": "Alice McCarthy",
+        "invoice_date": "2012-09-29",
+        "currency": "USD",
+        "subtotal": "4699.20",
+        "discount": "1879.68",
+        "shipping": "103.61",
+        "tax": "0.00",
+        "total": "2923.13",
+        "line_items": [
+            {
+                "description": "Office Star Executive Leather Armchair, Adjustable",
+                "quantity": "5",
+                "unit_price": "939.84",
+            }
+        ],
+    }
+
+    response = client.post("/invoices", json=payload, headers=auth_headers)
+    assert response.status_code == 201
+
+    # Verify repository persistence
+    record = mock_repo.get_record("INV-SHIP-API-01")
+    assert record is not None
+    assert record.shipping == Decimal("103.61")
+    assert record.discount == Decimal("1879.68")
+    assert record.total == Decimal("2923.13")
+
+    # Verify GET /invoices/{id} returns shipping
+    status_resp = client.get("/invoices/INV-SHIP-API-01", headers=auth_headers)
+    assert status_resp.status_code == 200
+    status_data = status_resp.json()
+    assert Decimal(str(status_data["shipping"])) == Decimal("103.61")
+    assert Decimal(str(status_data["discount"])) == Decimal("1879.68")
+    assert Decimal(str(status_data["total"])) == Decimal("2923.13")
+
+
+def test_create_invoice_rejects_float_shipping(client, auth_headers):
+    """Shipping field must strictly reject float values."""
+    payload = {
+        "invoice_id": "INV-FLOAT-SHIP",
+        "invoice_number": "NUM-01",
+        "vendor_id": "VEND-01",
+        "vendor_name": "Acme",
+        "invoice_date": "2026-01-01",
+        "shipping": 103.61,  # float literal
+        "total": "100.00",
+    }
+    response = client.post("/invoices", json=payload, headers=auth_headers)
+    assert response.status_code == 422
+
+
+def test_create_invoice_rejects_negative_shipping(client, auth_headers):
+    """Shipping field must reject negative values."""
+    payload = {
+        "invoice_id": "INV-NEG-SHIP",
+        "invoice_number": "NUM-01",
+        "vendor_id": "VEND-01",
+        "vendor_name": "Acme",
+        "invoice_date": "2026-01-01",
+        "shipping": "-10.00",
+        "total": "100.00",
+    }
+    response = client.post("/invoices", json=payload, headers=auth_headers)
+    assert response.status_code == 422

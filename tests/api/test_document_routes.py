@@ -43,6 +43,35 @@ def test_upload_document_success(client, mock_repo, mock_doc_store, auth_headers
     assert any(e.event_type == "DOCUMENT_RECEIVED" for e in events)
 
 
+def test_upload_document_plural_alias_success(client, mock_repo, mock_doc_store, auth_headers):
+    """Uploading via plural /documents alias uploads to S3, links key, and records audit event."""
+    record = InvoiceRecord(
+        invoice_id="INV-DOC-PLURAL",
+        invoice_number="NUM-PLURAL",
+        vendor_id="VEND-01",
+        vendor_name="Vendor 1",
+        invoice_date="2026-03-01",
+        processing_status=ProcessingState.QUEUED,
+    )
+    mock_repo.save_record(record)
+
+    file_bytes = b"%PDF-1.4 simulated pdf payload for plural alias"
+    response = client.post(
+        "/invoices/INV-DOC-PLURAL/documents",
+        files={"file": ("invoice_plural.pdf", file_bytes, "application/pdf")},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["invoice_id"] == "INV-DOC-PLURAL"
+    assert data["filename"] == "invoice_plural.pdf"
+    assert "invoices/INV-DOC-PLURAL/invoice_plural.pdf" in data["s3_key"]
+
+    updated_rec = mock_repo.get_record("INV-DOC-PLURAL")
+    assert updated_rec.document_s3_key == data["s3_key"]
+
+
 def test_upload_document_nonexistent_invoice(client, auth_headers):
     """Attempting to upload a document for a missing invoice returns 404."""
     response = client.post(

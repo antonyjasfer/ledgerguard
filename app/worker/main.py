@@ -1,9 +1,11 @@
 """Background worker process entrypoint for LedgerGuard.
 
-Polls the SQS job queue continuously, dispatches jobs to InvoiceProcessor,
+Polls the SQS job queue continuously with bounded concurrency (MAX_WORKER_CONCURRENCY),
+applies worker backpressure, dispatches jobs to a ThreadPoolExecutor,
 and handles graceful shutdown.
 """
 
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 import logging
 import signal
 import sys
@@ -38,15 +40,33 @@ class WorkerService:
             job_queue=self.job_queue,
             secret_provider=self.secret_provider,
             settings=self.settings,
+            auto_extract=True,
         )
+        self.executor = ThreadPoolExecutor(
+            max_workers=self.settings.MAX_WORKER_CONCURRENCY,
+            thread_name_prefix="lg-worker",
+        )
+        self.active_futures: set[Future] = set()
         self.is_running = True
 
     def stop(self, *args):
-        logger.info("Shutdown signal received. Finishing active jobs...")
+        logger.info("Shutdown signal received. Waiting for in-flight jobs to complete...")
         self.is_running = False
 
+    def _safe_process(self, job, receipt_handle):
+        """Execute processing with unhandled exception protection."""
+        try:
+            return self.processor.process_job(job, receipt_handle=receipt_handle)
+        except Exception as exc:
+            logger.exception("Unexpected fatal error processing job %s: %s", job.job_id, exc)
+            return False
+
     def run(self, max_iterations: int | None = None):
-        logger.info("LedgerGuard background worker starting...")
+        logger.info(
+            "LedgerGuard background worker starting (concurrency=%d, prefetch=%d)...",
+            self.settings.MAX_WORKER_CONCURRENCY,
+            self.settings.BATCH_PREFETCH_SIZE,
+        )
         iterations = 0
 
         while self.is_running:
@@ -55,26 +75,46 @@ class WorkerService:
             iterations += 1
 
             try:
+                # 1. Prune finished futures
+                self.active_futures = {f for f in self.active_futures if not f.done()}
+
+                # 2. Worker Backpressure Check
+                # If in-flight jobs reach pool capacity, wait for at least one to finish before polling SQS
+                if len(self.active_futures) >= self.settings.MAX_WORKER_CONCURRENCY:
+                    done, _ = wait(
+                        self.active_futures,
+                        return_when=FIRST_COMPLETED,
+                        timeout=0.5,
+                    )
+                    self.active_futures -= done
+                    continue
+
+                # 3. Calculate dynamic prefetch window based on free capacity
+                free_slots = self.settings.MAX_WORKER_CONCURRENCY - len(self.active_futures)
+                prefetch = max(1, min(self.settings.BATCH_PREFETCH_SIZE, free_slots, 10))
+
                 jobs = self.job_queue.receive_jobs(
-                    max_messages=5,
-                    wait_time_seconds=10,
+                    max_messages=prefetch,
+                    wait_time_seconds=5,
                 )
                 if not jobs:
                     continue
 
+                # 4. Dispatch received jobs to worker thread pool
                 for job, receipt_handle in jobs:
                     if not self.is_running:
                         break
-                    try:
-                        self.processor.process_job(job, receipt_handle=receipt_handle)
-                    except Exception as exc:
-                        logger.exception("Unexpected error processing job %s: %s", job.job_id, exc)
+                    future = self.executor.submit(self._safe_process, job, receipt_handle)
+                    self.active_futures.add(future)
 
             except Exception as exc:
                 logger.error("Error in worker polling loop: %s", exc)
                 time.sleep(2)
 
-        logger.info("LedgerGuard background worker stopped.")
+        # Graceful shutdown: wait for remaining in-flight futures
+        logger.info("Draining %d active in-flight worker jobs...", len(self.active_futures))
+        self.executor.shutdown(wait=True)
+        logger.info("LedgerGuard background worker stopped cleanly.")
 
 
 def main():

@@ -100,3 +100,65 @@ def test_quantize_money():
     assert quantize_money(None) is None
     assert quantize_money(Decimal("10.005")) == Decimal("10.01")
     assert quantize_money(Decimal("10.004")) == Decimal("10.00")
+
+
+def test_invoice_accepts_shipping_and_defaults_to_zero():
+    """Verify shipping is accepted and defaults to Decimal('0') when omitted."""
+    # Explicit shipping
+    inv_with_ship = Invoice(
+        invoice_id="INV-SHIP-01",
+        invoice_number="NUM-SHIP-01",
+        vendor_id="VEND-01",
+        vendor_name="Acme",
+        customer_name="Corp",
+        invoice_date=date(2026, 1, 1),
+        currency="USD",
+        subtotal=Decimal("100.00"),
+        tax=Decimal("10.00"),
+        discount=Decimal("5.00"),
+        shipping=Decimal("15.50"),
+        total=Decimal("120.50"),
+    )
+    assert inv_with_ship.shipping == Decimal("15.50")
+
+    # Default shipping
+    inv_default_ship = Invoice(
+        invoice_id="INV-SHIP-02",
+        invoice_number="NUM-SHIP-02",
+        vendor_id="VEND-01",
+        vendor_name="Acme",
+        customer_name="Corp",
+        invoice_date=date(2026, 1, 1),
+        currency="USD",
+        subtotal=Decimal("100.00"),
+        total=Decimal("100.00"),
+    )
+    assert inv_default_ship.shipping == Decimal("0")
+
+
+def test_invoice_rejects_float_shipping():
+    """Verify float is strictly rejected in Invoice shipping field."""
+    with pytest.raises(TypeError, match="Floating-point values are strictly forbidden"):
+        Invoice(
+            invoice_id="INV-SHIP-FLOAT",
+            invoice_number="NUM-FLOAT",
+            vendor_id="VEND-01",
+            vendor_name="Acme",
+            customer_name="Corp",
+            invoice_date=date(2026, 1, 1),
+            shipping=15.50,  # type: ignore
+        )
+
+
+def test_invoice_rejects_negative_shipping():
+    """Verify negative shipping raises ValidationError."""
+    with pytest.raises(ValidationError):
+        Invoice(
+            invoice_id="INV-SHIP-NEG",
+            invoice_number="NUM-NEG",
+            vendor_id="VEND-01",
+            vendor_name="Acme",
+            customer_name="Corp",
+            invoice_date=date(2026, 1, 1),
+            shipping=Decimal("-5.00"),
+        )

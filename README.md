@@ -438,6 +438,130 @@ LedgerGuard provides a full-featured, dark-mode web application and interactive 
    `
    See [docs/demo-runbook.md](docs/demo-runbook.md) for full walkthrough and [docs/video-script.md](docs/video-script.md) for presentation script.
 
+
+## Enterprise Context Layer (Company Policy, Vendor Master & Approval Matrix)
+
+**Core Principle**:
+> *The model reasons over verified company and invoice evidence. Company policies and vendor facts are deterministic.*
+
+The Enterprise Context layer transitions LedgerGuard from evaluating raw invoice fields against generic defaults to evaluating them against configured corporate policy rules and vendor history:
+
+```text
+company configuration + vendor master + vendor history + invoice data
+  → deterministic evidence
+  → policy evaluation
+  → risk scoring
+  → Strands Agent reasoning
+  → Decision Guard
+  → final decision
+```
+
+### 1. Company Configuration & Policy
+- **Demo Corporation**: LedgerGuard Demo Corporation (`LEDGERGUARD-DEMO`).
+- **Operational Currencies**: Officially supported in `USD`, `EUR`, `GBP` (default `USD`).
+- **Auto-Approval Limit**: `$5,000.00 USD` — Maximum invoice total eligible for straight-through automated approval without manual review.
+- **High-Value Threshold**: `$25,000.00 USD` — Invoices exceeding this boundary require executive escalation (Finance Director).
+- **Deterministic Enforcement Rules**:
+  - Confirmed duplicate invoice → `BLOCK`
+  - Arithmetic mismatch discrepancy → `BLOCK`
+  - New vendor (0 prior transactions or pending onboarding) → `MANUAL_REVIEW`
+  - Missing Purchase Order (when vendor requires PO) → `MANUAL_REVIEW`
+  - Unsupported currency → `MANUAL_REVIEW`
+  - Excessive discount (> 20.00%) → `MANUAL_REVIEW`
+  - Missing mandatory fields (`invoice_number`, `vendor_id`, `vendor_name`, `invoice_date`, `currency`, `line_items`, `subtotal`, `total`) → `MANUAL_REVIEW`
+
+### 2. Approval Routing Matrix
+Deterministic corporate authority routing evaluated before straight-through payment processing:
+- `$0.00` to `$5,000.00`: `AUTO_APPROVAL_ALLOWED` (straight-through processing eligible)
+- `$5,000.01` to `$25,000.00`: `MANAGER_REVIEW` (AP Department Manager authorization required)
+- `$25,000.01+`: `FINANCE_DIRECTOR_REVIEW` (Executive review required)
+- Confirmed Duplicate: `BLOCK`
+- Arithmetic Mismatch: `BLOCK`
+- New Vendor / Missing PO: `MANUAL_REVIEW`
+
+### 3. Synthetic Vendor Master & History
+Authoritative vendor directory containing synthetic profiles and historical spend baselines (no real bank accounts or secrets):
+1. **SuperStore** (`SUPERSTORE-001`): Active, Approved, Bank Verified, PO Required. 127 historical invoices, $157,800 spend, $1,242.52 avg, normal range $100–$5,000 USD.
+2. **Apex Cloud Technologies LLC** (`APEX-001`): Active, Approved, Bank Verified, PO Required. 84 historical invoices, $345,000 spend, $4,107.14 avg, normal range $500–$15,000 USD/EUR.
+3. **Nova Advisory Partners Inc** (`NOVA-001`): Active, Approved, Bank Verified, PO Optional. 42 historical invoices, $134,400 spend, $3,200 avg, normal range $500–$15,000 USD/GBP.
+4. **Northstar Office Systems Ltd** (`NORTHSTAR-001`): Active, Approved, Bank Verified, PO Required. 19 historical invoices, $41,800 spend, $2,200 avg, normal range $200–$6,000 GBP/EUR/USD.
+5. **Meridian Industrial Supply Co** (`MERIDIAN-001`): Active, Approved, Bank Verified, PO Required. 58 historical invoices, $92,800 spend, $1,600 avg, normal range $200–$5,000 USD.
+6. **New Unverified Supplies LLC** (`NEW-VENDOR-001`): Pending Onboarding, Bank Not Verified, PO Required. 0 historical transactions ($0 spend). Demonstrates new vendor onboarding review.
+
+### 4. Deterministic Risk Scoring
+Configurable, evidence-driven multi-factor risk engine:
+- `NEW_VENDOR`: +25
+- `POLICY_VIOLATION`: +25
+- `HIGH_VALUE_INVOICE`: +20
+- `AMOUNT_ABOVE_HISTORICAL_RANGE`: +20
+- `POSSIBLE_DUPLICATE`: +40
+- `MISSING_REQUIRED_FIELD`: +20
+- `UNSUPPORTED_CURRENCY`: +25
+- `LARGE_DISCOUNT`: +15
+- `VENDOR_NOT_APPROVED`: +40
+- `ARITHMETIC_MISMATCH`: +50
+- `CONFIRMED_DUPLICATE`: 100 (Critical Override)
+- Tiers: 0–19 `LOW`, 20–49 `MEDIUM`, 50–74 `HIGH`, 75–100 `CRITICAL`. Capped at 100.
+
+### 5. Decision Precedence & Decision Guard Authority
+Preserves deterministic Decision Guard authority over all AI reasoning:
+1. `CONFIRMED_DUPLICATE` → `BLOCK`
+2. Policy Block (e.g. Arithmetic Mismatch) → `BLOCK`
+3. `CRITICAL` Risk (score >= 75) → `BLOCK`
+4. `HIGH` Risk (score >= 50) → `MANUAL_REVIEW`
+5. Policy Requires Review → `MANUAL_REVIEW`
+6. `MEDIUM` Risk (score >= 20) → `MANUAL_REVIEW`
+7. Insufficient Data → `MANUAL_REVIEW`
+8. `LOW` Risk + All Gates Passed → `AUTO_APPROVE`
+
+## Phase 7: Bulk Invoice Ingestion
+
+LedgerGuard Phase 7 upgrades the ingestion layer from single-invoice submissions to high-throughput, multi-document batch ingestion. It safely handles multiple files, enforces strict security and size constraints, archives documents to S3 under canonical paths, detects duplicates via SHA-256 hashing, persists batch and document metadata in DynamoDB, and dispatches background processing jobs to SQS.
+
+### Core Capabilities
+
+1. **Multi-File Batch Validation**:
+   - File format whitelist: `.pdf`, `.png`, `.jpg`, `.jpeg`. Executables and scripts are rejected immediately (`UNSUPPORTED_EXTENSION`).
+   - File size ceiling: 10 MB per file (`FILE_TOO_LARGE`).
+   - Empty file protection: 0-byte files rejected (`EMPTY_FILE`).
+   - Aggregate batch limits: Maximum 100 files, 100 MB total payload per batch.
+   - Filename sanitization: Removes path traversal (`../`, `..\`), special characters, and non-alphanumeric noise to prevent S3 key injection.
+
+2. **Content-Addressable Deduplication (Level 1 SHA-256)**:
+   - Computes deterministic SHA-256 digests of file contents.
+   - Fast lookup against DynamoDB hash index (`DOCHASH#{hash}`).
+   - Duplicate documents are safely marked `DUPLICATE` with links to the original document and batch IDs.
+   - Duplicate documents are **not** re-uploaded to S3, **not** re-dispatched to SQS, and **never** automatically deleted from source folders.
+
+3. **Canonical S3 Storage Hierarchy**:
+   - Single Invoices: `invoices/{invoice_id}/{safe_filename}`
+   - Batch Ingestion: `batches/{batch_id}/documents/{document_id}/{safe_filename}`
+
+4. **Batch & Document Lifecycle States**:
+   - **Batch Statuses**: `RECEIVED` -> `VALIDATING` -> `UPLOADING` -> `QUEUING` -> `PROCESSING` -> `COMPLETED` / `COMPLETED_WITH_EXCEPTIONS` / `FAILED`.
+   - **Document Statuses**: `RECEIVED` -> `VALIDATING` -> `UPLOADING` -> `STORED` -> `QUEUED` / `DUPLICATE` / `REJECTED` / `FAILED`.
+   - **Pre-Extraction State**: All Phase 7 documents remain explicitly in `AWAITING_EXTRACTION`. No OCR, field parsing, or synthetic invoice values are fabricated.
+
+5. **REST API Endpoints**:
+   - `POST /batches`: Initialize a batch metadata record.
+   - `POST /batches/upload`: Multipart bulk upload of multiple documents.
+   - `GET /batches`: Paginated listing of ingestion batches.
+   - `GET /batches/{batch_id}`: Batch detail view with aggregate counters and document records.
+   - `GET /batches/{batch_id}/documents`: List of documents within a specific batch.
+
+6. **Local Folder Ingestion CLI (`scripts/ingest_batch.py`)**:
+   - Scans target directories for supported invoice documents.
+   - Secure authentication: Reads `LEDGERGUARD_API_KEY` from the environment. **Never** requires or exposes API keys via visible command-line arguments (e.g. `--api-key`).
+   - Usage:
+     ```powershell
+     python scripts/ingest_batch.py --folder demo_batch
+     ```
+
+7. **Frontend Operations UI**:
+   - **Bulk Ingestion View**: Multi-file drop zone, client-side validation, upload progress, and immediate results.
+   - **Batches Overview View**: Chronological table of all batches with status badges, source, and document counts.
+   - **Batch Detail View**: Deep-dive into batch documents, SHA-256 hashes, duplicate match explanations, and S3 keys.
+
 ## Security Model
 
 - **Authentication Boundary**: Protected endpoints require API authentication via `X-API-Key` header or `Authorization: Bearer <key>`.

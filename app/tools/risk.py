@@ -1,6 +1,6 @@
 """Deterministic risk scoring engine for LedgerGuard invoices.
 
-Calculates composite invoice risk score based on active risk factors.
+Calculates composite invoice risk score based on active deterministic risk factors.
 Enforces explicit threshold tiers, a hard score cap of 100, and a mandatory
 critical override for confirmed duplicates.
 Precedence of recommended actions respects blocking policies first.
@@ -21,6 +21,7 @@ from app.models.verification import (
     RecommendedAction,
     RiskLevel,
     RiskResult,
+    VendorContextResult,
     VendorHistoryResult,
     VerificationStatus,
 )
@@ -29,12 +30,17 @@ from app.models.verification import (
 class RiskWeights(BaseModel):
     """Centralized weights for deterministic risk factor scoring."""
 
-    confirmed_duplicate: int = Field(default=100, description="Risk weight for confirmed duplicate")
+    confirmed_duplicate: int = Field(default=100, description="Risk weight for confirmed duplicate (critical override)")
     arithmetic_mismatch: int = Field(default=50, description="Risk weight for arithmetic calculation discrepancy")
-    policy_violation: int = Field(default=30, description="Risk weight for corporate policy violations")
-    new_vendor: int = Field(default=20, description="Risk weight for new/unrecognized vendor")
+    possible_duplicate: int = Field(default=40, description="Risk weight for possible duplicate match")
+    vendor_not_approved: int = Field(default=40, description="Risk weight for suspended/rejected/inactive vendor")
     high_value: int = Field(default=20, description="Risk weight for invoice meeting/exceeding high value threshold")
-    possible_duplicate: int = Field(default=15, description="Risk weight for possible duplicate match")
+    new_vendor: int = Field(default=25, description="Risk weight for new/unrecognized vendor")
+    policy_violation: int = Field(default=25, description="Risk weight for corporate policy violations")
+    unsupported_currency: int = Field(default=25, description="Risk weight for unsupported or unapproved currency")
+    amount_above_historical_range: int = Field(default=20, description="Risk weight for exceeding historical normal max")
+    missing_required_field: int = Field(default=20, description="Risk weight for missing mandatory invoice field")
+    large_discount: int = Field(default=15, description="Risk weight for discount exceeding policy ceiling")
 
 
 def calculate_invoice_risk(
@@ -45,6 +51,7 @@ def calculate_invoice_risk(
     invoice: Invoice,
     weights: RiskWeights | None = None,
     high_value_threshold: Decimal = Decimal("5000.00"),
+    vendor_context: VendorContextResult | None = None,
 ) -> RiskResult:
     """Compute deterministic risk score and recommended AP workflow action.
 
@@ -56,6 +63,7 @@ def calculate_invoice_risk(
         invoice: Candidate invoice.
         weights: Configured risk factor point allocations.
         high_value_threshold: Threshold to consider invoice high value for risk scoring.
+        vendor_context: Optional vendor master context comparison.
 
     Returns:
         RiskResult with final score, risk level, active factors, and recommended action.
@@ -86,7 +94,12 @@ def calculate_invoice_risk(
         raw_score += cfg_weights.policy_violation
 
     # Factor 4: New vendor
-    if vendor_history.new_vendor:
+    if vendor_context is not None:
+        is_new = vendor_context.is_new_vendor
+    else:
+        is_new = vendor_history.new_vendor
+
+    if is_new:
         risk_factors.append("NEW_VENDOR")
         raw_score += cfg_weights.new_vendor
 
@@ -94,6 +107,36 @@ def calculate_invoice_risk(
     if invoice.total is not None and invoice.total >= high_value_threshold:
         risk_factors.append("HIGH_VALUE_INVOICE")
         raw_score += cfg_weights.high_value
+
+    # Factor 6: Amount above historical range
+    if vendor_context is not None and vendor_context.is_above_normal_range:
+        risk_factors.append("AMOUNT_ABOVE_HISTORICAL_RANGE")
+        raw_score += cfg_weights.amount_above_historical_range
+
+    # Factor 7: Unsupported currency
+    if vendor_context is not None and not vendor_context.currency_supported:
+        risk_factors.append("UNSUPPORTED_CURRENCY")
+        raw_score += cfg_weights.unsupported_currency
+
+    # Factor 8: Vendor suspended / rejected in master (not pending new vendor)
+    if vendor_context is not None and vendor_context.vendor_exists:
+        if (
+            vendor_context.status in ("SUSPENDED", "INACTIVE")
+            or vendor_context.onboarding_status == "REJECTED"
+            or (not vendor_context.is_active and not vendor_context.is_new_vendor)
+        ):
+            risk_factors.append("VENDOR_NOT_APPROVED")
+            raw_score += cfg_weights.vendor_not_approved
+
+    # Factor 9: Missing required fields (identified via policy violations)
+    if any(v.rule == "REQUIRED_FIELDS_CHECK" for v in policy.violations):
+        risk_factors.append("MISSING_REQUIRED_FIELD")
+        raw_score += cfg_weights.missing_required_field
+
+    # Factor 10: Large discount
+    if any(v.rule == "LARGE_DISCOUNT_REVIEW" for v in policy.violations):
+        risk_factors.append("LARGE_DISCOUNT")
+        raw_score += cfg_weights.large_discount
 
     # Cap score at 100
     risk_score = min(raw_score, 100)
@@ -103,11 +146,16 @@ def calculate_invoice_risk(
         risk_level = RiskLevel.CRITICAL
         risk_score = 100
     else:
+        # Configurable Risk Tiers:
+        # 0–19: LOW
+        # 20–49: MEDIUM
+        # 50–74: HIGH
+        # 75–100: CRITICAL
         if risk_score >= 75:
             risk_level = RiskLevel.CRITICAL
         elif risk_score >= 50:
             risk_level = RiskLevel.HIGH
-        elif risk_score >= 25:
+        elif risk_score >= 20:
             risk_level = RiskLevel.MEDIUM
         else:
             risk_level = RiskLevel.LOW

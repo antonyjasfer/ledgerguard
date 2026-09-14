@@ -3,11 +3,27 @@ import { Navbar } from './components/Navbar.tsx';
 import { DashboardPage } from './pages/DashboardPage.tsx';
 import { InvoicesPage } from './pages/InvoicesPage.tsx';
 import { InvoiceDetailPage } from './pages/InvoiceDetailPage.tsx';
+import { PolicyPage } from './pages/PolicyPage.tsx';
+import { VendorsPage } from './pages/VendorsPage.tsx';
+import { BatchIngestionPage } from './pages/BatchIngestionPage.tsx';
+import { BatchesPage } from './pages/BatchesPage.tsx';
+import { BatchDetailPage } from './pages/BatchDetailPage.tsx';
 import { InvoiceSubmissionModal } from './components/InvoiceSubmissionModal.tsx';
 
+type ViewMode =
+  | 'dashboard'
+  | 'invoices'
+  | 'detail'
+  | 'policy'
+  | 'vendors'
+  | 'batches'
+  | 'batch_ingest'
+  | 'batch_detail';
+
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'invoices' | 'detail'>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleSelectInvoice = (id: string) => {
@@ -15,9 +31,15 @@ export const App: React.FC = () => {
     setCurrentView('detail');
   };
 
-  const handleNavigate = (view: 'dashboard' | 'invoices') => {
+  const handleSelectBatch = (id: string) => {
+    setSelectedBatchId(id);
+    setCurrentView('batch_detail');
+  };
+
+  const handleNavigate = (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest') => {
     setCurrentView(view);
     setSelectedInvoiceId(null);
+    setSelectedBatchId(null);
   };
 
   return (
@@ -33,11 +55,43 @@ export const App: React.FC = () => {
           <DashboardPage
             onSelectInvoice={handleSelectInvoice}
             onViewAllInvoices={() => setCurrentView('invoices')}
+            onNavigatePolicy={() => setCurrentView('policy')}
+            onNavigateVendors={() => setCurrentView('vendors')}
           />
         )}
 
         {currentView === 'invoices' && (
           <InvoicesPage onSelectInvoice={handleSelectInvoice} />
+        )}
+
+        {currentView === 'batch_ingest' && (
+          <BatchIngestionPage
+            onViewBatches={() => setCurrentView('batches')}
+            onSelectBatch={handleSelectBatch}
+          />
+        )}
+
+        {currentView === 'batches' && (
+          <BatchesPage
+            onSelectBatch={handleSelectBatch}
+            onNewBatch={() => setCurrentView('batch_ingest')}
+          />
+        )}
+
+        {currentView === 'batch_detail' && selectedBatchId && (
+          <BatchDetailPage
+            batchId={selectedBatchId}
+            onBack={() => setCurrentView('batches')}
+            onNewBatch={() => setCurrentView('batch_ingest')}
+          />
+        )}
+
+        {currentView === 'policy' && (
+          <PolicyPage />
+        )}
+
+        {currentView === 'vendors' && (
+          <VendorsPage />
         )}
 
         {currentView === 'detail' && selectedInvoiceId && (

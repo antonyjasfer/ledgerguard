@@ -165,8 +165,13 @@ export const InvoiceDetailPage: React.FC<InvoiceDetailPageProps> = ({ invoiceId,
           <div>
             <div className="stat-label">Total Amount</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>
-               {invoice.currency}
+              ${formatMoney(invoice.total)} {invoice.currency}
             </div>
+            {(invoice.subtotal !== null && invoice.subtotal !== undefined) && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                Subtotal: ${formatMoney(invoice.subtotal)} | Tax: ${formatMoney(invoice.tax)}
+              </div>
+            )}
           </div>
 
           <div>
@@ -221,7 +226,7 @@ export const InvoiceDetailPage: React.FC<InvoiceDetailPageProps> = ({ invoiceId,
 
       {/* Tab Content */}
       {activeTab === 'evidence' && (
-        <EvidencePanel evidence={invoice.verification_summary} />
+        <EvidencePanel evidence={invoice.verification_summary} invoice={invoice} />
       )}
 
       {activeTab === 'guard' && (
@@ -237,7 +242,7 @@ export const InvoiceDetailPage: React.FC<InvoiceDetailPageProps> = ({ invoiceId,
           invoiceId={invoice.invoice_id}
           currentKey={invoice.document_s3_key}
           onUploaded={(key) => {
-            setInvoice({ ...invoice, document_s3_key: key });
+            setInvoice((prev) => prev ? { ...prev, document_s3_key: key } : null);
           }}
         />
       )}

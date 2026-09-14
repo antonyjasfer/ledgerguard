@@ -64,6 +64,32 @@ class Settings(BaseSettings):
         description="AWS credential profile name for Bedrock runtime.",
     )
 
+    # Phase 9: Enterprise Scale & Concurrency Controls
+    MAX_WORKER_CONCURRENCY: int = Field(
+        default=8,
+        ge=1,
+        le=64,
+        description="Maximum concurrent worker tasks",
+    )
+    MAX_EXTRACTION_CONCURRENCY: int = Field(
+        default=4,
+        ge=1,
+        le=32,
+        description="Maximum concurrent extraction/OCR operations",
+    )
+    MAX_GEMMA_CONCURRENCY: int = Field(
+        default=3,
+        ge=1,
+        le=16,
+        description="Maximum concurrent Bedrock Mantle / Gemma operations",
+    )
+    BATCH_PREFETCH_SIZE: int = Field(
+        default=10,
+        ge=1,
+        le=100,
+        description="Maximum SQS messages to prefetch per polling cycle",
+    )
+
     # Phase 4 AWS Data Layer settings
     LEDGERGUARD_S3_BUCKET: str | None = Field(
         default=None,

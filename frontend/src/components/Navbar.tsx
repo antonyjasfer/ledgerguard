@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Shield, LayoutDashboard, FileText, PlusCircle, Key, Check } from 'lucide-react';
+import { Shield, LayoutDashboard, FileText, PlusCircle, Key, Check, BookOpen, Users, Layers, UploadCloud } from 'lucide-react';
 import { getApiKey, setApiKey } from '../services/api.ts';
 
 interface NavbarProps {
-  currentView: 'dashboard' | 'invoices' | 'detail';
-  onNavigate: (view: 'dashboard' | 'invoices') => void;
+  currentView: 'dashboard' | 'invoices' | 'detail' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'batch_detail';
+  onNavigate: (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest') => void;
   onOpenCreate: () => void;
 }
 
@@ -46,6 +46,34 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenC
         >
           <FileText size={16} /> Invoices
         </button>
+        <button
+          id="nav-batch-ingest-btn"
+          className={`nav-btn ${currentView === 'batch_ingest' ? 'active' : ''}`}
+          onClick={() => onNavigate('batch_ingest')}
+        >
+          <UploadCloud size={16} /> Bulk Ingestion
+        </button>
+        <button
+          id="nav-batches-btn"
+          className={`nav-btn ${currentView === 'batches' || currentView === 'batch_detail' ? 'active' : ''}`}
+          onClick={() => onNavigate('batches')}
+        >
+          <Layers size={16} /> Batches
+        </button>
+        <button
+          id="nav-policy-btn"
+          className={`nav-btn ${currentView === 'policy' ? 'active' : ''}`}
+          onClick={() => onNavigate('policy')}
+        >
+          <BookOpen size={16} /> Policy
+        </button>
+        <button
+          id="nav-vendors-btn"
+          className={`nav-btn ${currentView === 'vendors' ? 'active' : ''}`}
+          onClick={() => onNavigate('vendors')}
+        >
+          <Users size={16} /> Vendors
+        </button>
       </div>
 
       <div className="nav-actions">
@@ -56,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenC
           onClick={() => setShowKeyModal(true)}
           title="Configure API Key"
         >
-          <Key size={14} /> Key: {apiKeyVal ? '••••' + apiKeyVal.slice(-3) : 'None'}
+          <Key size={14} /> Key: {apiKeyVal ? '••••••' + apiKeyVal.slice(-3) : 'None'}
         </button>
 
         <button

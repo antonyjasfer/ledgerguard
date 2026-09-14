@@ -22,6 +22,12 @@ def test_processing_state_members():
         "MANUAL_REVIEW",
         "BLOCKED",
         "FAILED",
+        "DOCUMENT_INGESTED",
+        "AWAITING_EXTRACTION",
+        "EXTRACTING",
+        "EXTRACTION_COMPLETED",
+        "EXTRACTION_VALIDATED",
+        "INSUFFICIENT_CONFIDENCE",
     }
     actual_states = {s.value for s in ProcessingState}
     assert expected_states == actual_states
@@ -40,6 +46,14 @@ def test_valid_transitions():
     assert can_transition(ProcessingState.VERIFIED, ProcessingState.AUTO_APPROVED)
     assert can_transition(ProcessingState.VERIFIED, ProcessingState.MANUAL_REVIEW)
     assert can_transition(ProcessingState.VERIFIED, ProcessingState.BLOCKED)
+
+    # Phase 7 & 8 transitions
+    assert can_transition(ProcessingState.RECEIVED, ProcessingState.DOCUMENT_INGESTED)
+    assert can_transition(ProcessingState.DOCUMENT_INGESTED, ProcessingState.AWAITING_EXTRACTION)
+    assert can_transition(ProcessingState.AWAITING_EXTRACTION, ProcessingState.EXTRACTING)
+    assert can_transition(ProcessingState.EXTRACTING, ProcessingState.EXTRACTION_COMPLETED)
+    assert can_transition(ProcessingState.EXTRACTION_COMPLETED, ProcessingState.EXTRACTION_VALIDATED)
+    assert can_transition(ProcessingState.EXTRACTION_VALIDATED, ProcessingState.QUEUED)
 
     # Valid transitions should not raise
     validate_transition(ProcessingState.RECEIVED, ProcessingState.PROCESSING)
