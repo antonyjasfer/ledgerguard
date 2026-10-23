@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Shield, LayoutDashboard, FileText, PlusCircle, Key, Check, BookOpen, Users, Layers, UploadCloud } from 'lucide-react';
+import { Shield, LayoutDashboard, FileText, PlusCircle, Key, Check, BookOpen, Users, Layers, UploadCloud, Sparkles } from 'lucide-react';
 import { getApiKey, setApiKey } from '../services/api.ts';
 
 interface NavbarProps {
-  currentView: 'dashboard' | 'invoices' | 'detail' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'batch_detail';
-  onNavigate: (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest') => void;
+  currentView: 'dashboard' | 'invoices' | 'detail' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'batch_detail' | 'alexa';
+  onNavigate: (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'alexa') => void;
   onOpenCreate: () => void;
 }
 
@@ -73,6 +73,19 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenC
           onClick={() => onNavigate('vendors')}
         >
           <Users size={16} /> Vendors
+        </button>
+        <button
+          id="nav-alexa-btn"
+          className={`nav-btn ${currentView === ('alexa' as any) ? 'active' : ''}`}
+          onClick={() => onNavigate('alexa' as any)}
+          style={{
+            borderColor: currentView === ('alexa' as any) ? '#38bdf8' : 'rgba(56, 189, 248, 0.35)',
+            background: currentView === ('alexa' as any) ? 'rgba(56, 189, 248, 0.2)' : 'rgba(56, 189, 248, 0.05)',
+            color: '#38bdf8',
+            fontWeight: 600
+          }}
+        >
+          <Sparkles size={16} /> Alexa+ Simulator
         </button>
       </div>
 

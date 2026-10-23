@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Navbar } from './components/Navbar.tsx';
 import { DashboardPage } from './pages/DashboardPage.tsx';
 import { InvoicesPage } from './pages/InvoicesPage.tsx';
@@ -18,7 +18,8 @@ type ViewMode =
   | 'vendors'
   | 'batches'
   | 'batch_ingest'
-  | 'batch_detail';
+  | 'batch_detail'
+  | 'alexa';
 
 export const App: React.FC = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -41,7 +42,7 @@ export const App: React.FC = () => {
     setCurrentView('batch_detail');
   };
 
-  const handleNavigate = (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest') => {
+  const handleNavigate = (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'alexa') => {
     setCurrentView(view);
     setSelectedInvoiceId(null);
     setSelectedBatchId(null);

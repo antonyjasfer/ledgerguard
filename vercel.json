@@ -4,7 +4,7 @@
     "app": {
       "root": ".",
       "runtime": "python",
-      "entrypoint": "api/index.py",
+      "entrypoint": "api.index:app",
       "bindings": [
         {
           "type": "service",
@@ -21,7 +21,7 @@
     "strands-bedrock-preflight": {
       "root": "open_source_contribution/strands-bedrock-preflight",
       "runtime": "python",
-      "entrypoint": "api/index.py"
+      "entrypoint": "api.index:app"
     }
   },
   "rewrites": [
@@ -32,55 +32,55 @@
       }
     },
     {
-      "source": "/dashboard/(.*)",
+      "source": "/dashboard(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/invoices/(.*)",
+      "source": "/invoices(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/batches/(.*)",
+      "source": "/batches(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/policy/(.*)",
+      "source": "/policy(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/vendors/(.*)",
+      "source": "/vendors(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/ready",
+      "source": "/ready(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/health",
+      "source": "/health(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/mcp",
+      "source": "/mcp(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/docs",
+      "source": "/docs(.*)",
       "destination": {
         "service": "app"
       }
@@ -92,25 +92,19 @@
       }
     },
     {
-      "source": "/redoc",
+      "source": "/redoc(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/alexa",
+      "source": "/alexa(.*)",
       "destination": {
         "service": "app"
       }
     },
     {
-      "source": "/preflight/(.*)",
-      "destination": {
-        "service": "strands-bedrock-preflight"
-      }
-    },
-    {
-      "source": "/preflight",
+      "source": "/preflight(.*)",
       "destination": {
         "service": "strands-bedrock-preflight"
       }

@@ -1,4 +1,4 @@
-﻿from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP
 """Amazon DynamoDB invoice repository, batch repository, and audit event store for LedgerGuard.
 
 Implements single-table storage design with partition key `INVOICE#{invoice_id}` or `BATCH#{batch_id}`
