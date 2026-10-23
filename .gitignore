@@ -35,3 +35,9 @@ frontend/dist/
 
 # Generated benchmark output
 scale_benchmark_results.json
+
+# Local SQLite databases & data storage
+data/
+*.db
+*.db-wal
+*.db-shm

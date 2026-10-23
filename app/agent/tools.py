@@ -1,6 +1,6 @@
 """Strands tool wrappers for LedgerGuard deterministic verification functions.
 
-Each wrapper delegates to the corresponding Phase 2 deterministic implementation.
+Each wrapper delegates to the corresponding deterministic implementation.
 No business logic is duplicated here. The wrappers adapt typed Pydantic models
 to/from the dict-based interface that Strands tool calling uses.
 """
@@ -14,11 +14,12 @@ from strands import tool
 
 from app.models.invoice import Invoice, LineItem
 from app.models.policy import PolicyConfig
+from app.tools.anomaly import scan_invoice_anomalies as _anomaly
 from app.tools.arithmetic import calculate_invoice_arithmetic as _arithmetic
 from app.tools.duplicates import check_duplicate_invoice as _duplicates
-from app.tools.vendor_history import get_vendor_history as _vendor_history
 from app.tools.policy import evaluate_invoice_policy as _policy
 from app.tools.risk import calculate_invoice_risk as _risk
+from app.tools.vendor_history import get_vendor_history as _vendor_history
 
 
 def _dict_to_invoice(data: dict) -> Invoice:
@@ -161,9 +162,8 @@ def evaluate_invoice_policy(
     Returns:
         JSON string with the PolicyVerificationResult.
     """
-    from app.models.verification import DuplicateCheckResult, VendorHistoryResult
-
     invoice = _dict_to_invoice(json.loads(invoice_data))
+    from app.models.verification import DuplicateCheckResult, VendorHistoryResult
     vendor = VendorHistoryResult.model_validate_json(vendor_history_json)
     dup = DuplicateCheckResult.model_validate_json(duplicate_result_json)
     result = _policy(invoice, vendor, dup)
@@ -214,20 +214,50 @@ def calculate_invoice_risk(
     return result.model_dump_json()
 
 
-# Ordered list of all LedgerGuard verification tools for Agent registration
-# Aliases for backward compatibility
+@tool(
+    name="detect_transaction_anomalies",
+    description=(
+        "Execute deterministic financial anomaly detection rules on an invoice against historical "
+        "records. Detects recurring subscription price increases with percentage and dollar changes, "
+        "duplicate billing, line-item arithmetic discrepancies, and unregistered vendor spend breaches. "
+        "Returns a structured AnomalyScanReport."
+    ),
+)
+def detect_transaction_anomalies(invoice_data: str, historical_invoices: str) -> str:
+    """Run deterministic anomaly detection on invoice.
+
+    Args:
+        invoice_data: JSON string containing the invoice.
+        historical_invoices: JSON string containing historical invoices list.
+
+    Returns:
+        JSON string of AnomalyScanReport.
+    """
+    inv = _dict_to_invoice(json.loads(invoice_data))
+    history = [_dict_to_invoice(h) for h in json.loads(historical_invoices)]
+    report = _anomaly(inv, history)
+    return report.model_dump_json()
+
+
+# Backward compatibility aliases
 verify_invoice_arithmetic = calculate_invoice_arithmetic
 check_invoice_duplicates = check_duplicate_invoice
 get_vendor_history_tool = get_vendor_history
 evaluate_invoice_policy_tool = evaluate_invoice_policy
 calculate_invoice_risk_tool = calculate_invoice_risk
+detect_transaction_anomalies_tool = detect_transaction_anomalies
 
-
-# Ordered list of all LedgerGuard verification tools for Agent registration
+# Ordered list of core LedgerGuard verification tools for Agent registration
 LEDGERGUARD_TOOLS = [
     calculate_invoice_arithmetic,
     check_duplicate_invoice,
     get_vendor_history,
     evaluate_invoice_policy,
     calculate_invoice_risk,
+]
+
+# Extended catalogue including deterministic anomaly detection
+EXTENDED_LEDGERGUARD_TOOLS = [
+    *LEDGERGUARD_TOOLS,
+    detect_transaction_anomalies,
 ]

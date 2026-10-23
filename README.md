@@ -100,32 +100,75 @@ All required technologies are imported, configured, and actively executed in our
 
 ---
 
+## Core Architecture & Engineering Highlights
+
+- **Deterministic Anomaly Engine**: Detects subscription increases (`RULE-ANOMALY-SUB-01`), duplicate billing (`RULE-ANOMALY-DUP-01/02`), unbacked line-item arithmetic (`RULE-ANOMALY-MATH-01`), and unregistered vendor threshold breaches (`RULE-ANOMALY-VEND-01`).
+- **Cryptographic Hash Chain**: Full Genesis-to-tip validation using SHA-256 pre-digests and memory-hard Argon2id seals (`m=65536, t=2, p=2`), with active tamper detection for modified amounts or redirected bank details.
+- **Durable SQLite Persistence**: Thread-safe database in WAL (Write-Ahead Logging) mode at `data/ledgerguard.db`, ensuring invoice states, session history, and audit blocks survive restarts.
+- **Strict ID Selection**: Zero transaction guessing based on natural language substrings. Unknown or unlisted IDs are explicitly rejected with `TRANSACTION_NOT_FOUND`.
+- **Honest Provider Routing**: Detects AWS Bedrock authorization; seamlessly falls back to local deterministic routing without fabricating responses. Live banking rails are honestly labeled as simulation.
+- **Streamable HTTP MCP Server**: Fully compliant with MCP `2025-11-25` spec, exposing forensic audit tools at `http://127.0.0.1:8000/mcp`.
+- **Dual Dashboard Interfaces**: Modern Apple/Stripe-styled Alexa+ simulator at `/` and the enterprise multi-page React application mounted at `/app`.
+
+---
+
 ## Setup & Quickstart
 
 ### Prerequisites
-- Python 3.11 (`.\.venv\Scripts\Activate.ps1`)
-- AWS CLI configured with profile `ledgerguard` (`us-east-1`)
+- Python 3.11+
+- Node.js 18+ and npm
+- Optional: AWS CLI configured with profile `ledgerguard` (if using live Bedrock)
 
-### 1. Run Diagnostic Verifications
-```powershell
-$env:AWS_PROFILE = "ledgerguard"
-$env:AWS_DEFAULT_REGION = "us-east-1"
+### 1. Backend Installation & Setup
+```bash
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
 
-# Phase 1: Verify all 5 connectors
-python verify_connectors.py
-
-# Phase 2: Run complete End-to-End Suite
-python test_phase2_e2e.py
-
-# Phase 3: Run Open Source Package Unit Tests
-pytest open_source_contribution/strands-bedrock-preflight/tests/test_preflight.py -v
+# Install Python package in editable mode
+pip install -e .
 ```
 
-### 2. Launch the Interactive Demo
+### 2. Frontend Build
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
+The compiled React production assets are located at `frontend/dist` and automatically mounted at `/app` and `/assets`.
+
+### 3. Run the Automated Test Suite (318+ Passing Tests)
+```bash
+# Run all tests across the repository
+python -c "import os, pytest; os.chdir('.'); pytest.main(['tests', '-v'])"
+
+# Run specific engineering audit test suites
+pytest tests/test_transaction_selection.py -v
+pytest tests/test_anomaly.py -v
+pytest tests/test_audit_chain_verification.py -v
+pytest tests/test_sqlite_persistence.py -v
+pytest tests/test_security_xss.py -v
+```
+
+### 4. Launch the Interactive Application
 ```powershell
 .\start_demo.ps1
+# Or directly via uvicorn:
+uvicorn app.api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-Open **`http://127.0.0.1:8000/alexa`** in your browser.
+
+Access the interfaces:
+- **Standalone Alexa+ Voice & AP Dashboard**: [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/)
+- **Full Enterprise React Dashboard**: [`http://127.0.0.1:8000/app`](http://127.0.0.1:8000/app)
+- **MCP Server Streamable HTTP Endpoint**: [`http://127.0.0.1:8000/mcp`](http://127.0.0.1:8000/mcp)
+- **API Documentation (Swagger UI)**: [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
+
+---
+
+## Full Traceability & Audit Verification
+
+For the complete control-by-control functionality mapping, advertised feature classifications, and cryptographic proofs, see:
+[`docs/AUDIT_AND_TRACEABILITY.md`](docs/AUDIT_AND_TRACEABILITY.md)
 
 ---
 

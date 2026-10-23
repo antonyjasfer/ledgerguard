@@ -2,7 +2,7 @@
 
 Implements the Model Context Protocol (MCP) Streamable HTTP transport and
 specification version 2025-11-25. Exposes deterministic accounts-payable verification
-tools and cryptographic Argon2id audit sealing to Alexa+ and Bedrock agents.
+tools, anomaly detection, and cryptographic Argon2id audit sealing to Alexa+ and Bedrock agents.
 
 Supported MCP Methods:
 - initialize (returns server info, capabilities, instructions, protocolVersion 2025-11-25)
@@ -26,10 +26,11 @@ from app.agent.tools import (
     calculate_invoice_arithmetic,
     calculate_invoice_risk,
     check_duplicate_invoice,
+    detect_transaction_anomalies,
     evaluate_invoice_policy,
     get_vendor_history,
 )
-from connectors.argon_connector import seal_audit_record, verify_audit_seal
+from connectors.argon_connector import seal_audit_record, verify_audit_seal, verify_chain_integrity
 from connectors.aws_strands_connector import get_bedrock_strands_connector
 
 logger = logging.getLogger("ledgerguard.connectors.alexa_mcp")
@@ -123,8 +124,8 @@ MCP_TOOLS_CATALOGUE = [
     {
         "name": "calculate_invoice_risk",
         "description": (
-            "Compute composite accounts-payable risk score (0-100), risk tier (LOW/MEDIUM/HIGH), "
-            "risk factors, and recommended action (APPROVE, MANUAL_REVIEW, REJECT)."
+            "Compute composite accounts-payable risk score (0-100), risk tier (LOW/MEDIUM/HIGH/CRITICAL), "
+            "risk factors, and recommended action (AUTO_APPROVE, MANUAL_REVIEW, BLOCK)."
         ),
         "inputSchema": {
             "type": "object",
@@ -142,6 +143,28 @@ MCP_TOOLS_CATALOGUE = [
                 "policy_result_json",
                 "invoice_data",
             ],
+        },
+    },
+    {
+        "name": "detect_transaction_anomalies",
+        "description": (
+            "Execute deterministic financial anomaly detection rules on an invoice against historical "
+            "records. Detects recurring subscription price increases, duplicate billing, line-item arithmetic "
+            "variances, and unregistered vendor spend breaches. Returns structured AnomalyScanReport."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "invoice_data": {
+                    "type": "string",
+                    "description": "JSON string containing invoice data model fields",
+                },
+                "historical_invoices": {
+                    "type": "string",
+                    "description": "JSON string containing array of historical invoices",
+                },
+            },
+            "required": ["invoice_data", "historical_invoices"],
         },
     },
     {
@@ -185,6 +208,24 @@ MCP_TOOLS_CATALOGUE = [
                 "timestamp": {"type": "string", "description": "Timestamp sealed"},
             },
             "required": ["seal", "prev_hash", "tx_id", "action", "timestamp"],
+        },
+    },
+    {
+        "name": "verify_ledger_audit_chain",
+        "description": (
+            "Verify complete cryptographic audit chain from genesis block. Validates sequential "
+            "SHA-256 linkages and Argon2id memory-hard seals for every block."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "chain": {
+                    "type": "array",
+                    "description": "Array of audit blocks to verify",
+                    "items": {"type": "object"},
+                }
+            },
+            "required": ["chain"],
         },
     },
     {
@@ -241,6 +282,11 @@ def _handle_tool_call(name: str, arguments: dict[str, Any]) -> str:
         inv_data = arguments.get("invoice_data", "{}")
         return calculate_invoice_risk(arith, dup, vh, pol, inv_data)
 
+    elif name == "detect_transaction_anomalies":
+        inv_data = arguments.get("invoice_data", "{}")
+        hist_data = arguments.get("historical_invoices", "[]")
+        return detect_transaction_anomalies(inv_data, hist_data)
+
     elif name == "seal_ledger_audit_record":
         prev_hash = arguments.get("prev_hash", "GENESIS")
         tx_id = arguments.get("tx_id", "")
@@ -257,6 +303,11 @@ def _handle_tool_call(name: str, arguments: dict[str, Any]) -> str:
         ts = arguments.get("timestamp", "")
         valid = verify_audit_seal(seal, prev_hash, tx_id, action, ts)
         return json.dumps({"valid": valid, "algorithm": "argon2id", "tx_id": tx_id})
+
+    elif name == "verify_ledger_audit_chain":
+        chain = arguments.get("chain", [])
+        res = verify_chain_integrity(chain)
+        return json.dumps(res)
 
     elif name == "verify_invoice_autonomous":
         inv_data = arguments.get("invoice_data", "{}")
@@ -312,7 +363,7 @@ def _process_jsonrpc_request(data: dict[str, Any]) -> dict[str, Any] | None:
                 },
                 "instructions": (
                     "LedgerGuard Alexa+ MCP Server providing accounts-payable invoice verification, "
-                    "arithmetic validation, duplicate prevention, and cryptographic Argon2id audit sealing."
+                    "arithmetic validation, duplicate prevention, anomaly detection, and cryptographic Argon2id audit sealing."
                 ),
             },
         }

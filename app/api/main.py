@@ -3,14 +3,17 @@
 Configures application middleware, structured error handling, OpenAPI documentation,
 and mounts health, invoice verification, dashboard, enterprise context, bulk batch
 ingestion, and the Alexa+ Multi-Modal and Argon2id cryptographic vault routes.
+Mounts React Enterprise Dashboard at /app and static assets.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.errors import register_error_handlers
 from app.api.middleware import RequestCorrelationMiddleware
@@ -76,7 +79,17 @@ def create_app() -> FastAPI:
     app.include_router(alexa_mcp_router)
     app.include_router(alexa_plus.router)
 
-    # 4. Multi-Modal Web Simulator & Dashboard Endpoints
+    # 4. Mount Static React Build if available
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    frontend_dist = os.path.join(project_root, "frontend", "dist")
+    assets_dir = os.path.join(frontend_dist, "assets")
+
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+    if os.path.isdir(frontend_dist):
+        app.mount("/app", StaticFiles(directory=frontend_dist, html=True), name="frontend_app")
+
+    # 5. Multi-Modal Web Simulator & Dashboard Endpoints
     @app.get("/alexa", response_class=HTMLResponse, include_in_schema=False)
     async def alexa_ui_endpoint() -> HTMLResponse:
         """Serve the Argon Glass Alexa+ Multi-Modal Web Simulator & Dashboard."""
