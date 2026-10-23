@@ -23,6 +23,11 @@ dev = [
     "pytest>=9.1.1",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "connectors*", "api*"]
+exclude = ["tests*", "frontend*", "data*", "demo_batch*", "skills*", "open_source_contribution*", "scripts*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

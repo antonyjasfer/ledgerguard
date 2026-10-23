@@ -32,3 +32,8 @@ dependencies = [
 test = [
     "pytest>=8.0.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["strands_bedrock_preflight*", "api*"]
+exclude = ["tests*"]
