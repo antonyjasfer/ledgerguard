@@ -52,7 +52,7 @@ class Settings(BaseSettings):
         description="AWS Region for Amazon Bedrock services.",
     )
     AWS_PROFILE: str | None = Field(
-        default="ledgerguard",
+        default=None,
         description="AWS credential profile name for local development.",
     )
     BEDROCK_MODEL_ID: str = Field(
@@ -60,7 +60,7 @@ class Settings(BaseSettings):
         description="Model identifier for Amazon Bedrock Runtime.",
     )
     BEDROCK_PROFILE_NAME: str | None = Field(
-        default="ledgerguard",
+        default=None,
         description="AWS credential profile name for Bedrock runtime.",
     )
 

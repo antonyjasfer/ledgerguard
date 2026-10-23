@@ -84,7 +84,7 @@ UI_HTML = """<!DOCTYPE html>
 
     <!-- Header Badges & Actions -->
     <div class="flex items-center gap-2.5 sm:gap-3">
-      <a href="/app" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200/80 transition flex items-center gap-1.5">
+      <a href="/" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200/80 transition flex items-center gap-1.5">
         <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
         <span>Full React Dashboard</span>
       </a>

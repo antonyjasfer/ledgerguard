@@ -18,8 +18,7 @@ type ViewMode =
   | 'vendors'
   | 'batches'
   | 'batch_ingest'
-  | 'batch_detail'
-  | 'alexa';
+  | 'batch_detail';
 
 export const App: React.FC = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -42,7 +41,7 @@ export const App: React.FC = () => {
     setCurrentView('batch_detail');
   };
 
-  const handleNavigate = (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'alexa') => {
+  const handleNavigate = (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest') => {
     setCurrentView(view);
     setSelectedInvoiceId(null);
     setSelectedBatchId(null);

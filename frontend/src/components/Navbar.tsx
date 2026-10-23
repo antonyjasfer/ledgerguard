@@ -3,8 +3,8 @@ import { Shield, LayoutDashboard, FileText, PlusCircle, Key, Check, BookOpen, Us
 import { getApiKey, setApiKey } from '../services/api.ts';
 
 interface NavbarProps {
-  currentView: 'dashboard' | 'invoices' | 'detail' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'batch_detail' | 'alexa';
-  onNavigate: (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'alexa') => void;
+  currentView: 'dashboard' | 'invoices' | 'detail' | 'policy' | 'vendors' | 'batches' | 'batch_ingest' | 'batch_detail';
+  onNavigate: (view: 'dashboard' | 'invoices' | 'policy' | 'vendors' | 'batches' | 'batch_ingest') => void;
   onOpenCreate: () => void;
 }
 
@@ -74,19 +74,25 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenC
         >
           <Users size={16} /> Vendors
         </button>
-        <button
+        <a
           id="nav-alexa-btn"
-          className={`nav-btn ${currentView === ('alexa' as any) ? 'active' : ''}`}
-          onClick={() => onNavigate('alexa' as any)}
+          href="/alexa"
+          className="nav-btn"
           style={{
-            borderColor: currentView === ('alexa' as any) ? '#38bdf8' : 'rgba(56, 189, 248, 0.35)',
-            background: currentView === ('alexa' as any) ? 'rgba(56, 189, 248, 0.2)' : 'rgba(56, 189, 248, 0.05)',
+            borderColor: 'rgba(56, 189, 248, 0.4)',
+            background: 'rgba(56, 189, 248, 0.12)',
             color: '#38bdf8',
-            fontWeight: 600
+            fontWeight: 600,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            marginLeft: '0.25rem',
           }}
+          title="Open Alexa+ Voice & Multi-Modal AP Command Center"
         >
-          <Sparkles size={16} /> Alexa+ Simulator
-        </button>
+          <Sparkles size={16} /> Alexa+ Simulator ↗
+        </a>
       </div>
 
       <div className="nav-actions">

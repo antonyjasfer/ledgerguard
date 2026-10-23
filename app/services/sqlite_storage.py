@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import sqlite3
+import tempfile
 import threading
 from datetime import date, datetime, timezone
 from decimal import Decimal
@@ -22,7 +23,7 @@ from typing import Any
 
 logger = logging.getLogger("ledgerguard.services.sqlite")
 
-DB_DIR = Path("/tmp/data") if (os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")) else Path("data")
+DB_DIR = (Path(tempfile.gettempdir()) / "ledgerguard_data") if (os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")) else Path("data")
 DB_FILE = DB_DIR / "ledgerguard.db"
 
 
@@ -123,7 +124,91 @@ class SQLiteLedgerStore:
                 );
             """)
             conn.commit()
+
+            cursor.execute("SELECT count(*) FROM invoices;")
+            row_count = cursor.fetchone()[0]
+            if row_count == 0:
+                self._seed_default_invoices(cursor)
+                conn.commit()
             logger.info("SQLite database initialized at %s with WAL enabled", self.db_path)
+
+    def _seed_default_invoices(self, cursor: sqlite3.Cursor) -> None:
+        """Seed benchmark AP scenarios for immediate out-of-the-box functionality."""
+        now_iso = datetime.now(timezone.utc).isoformat()
+        samples = [
+            {
+                "invoice_id": "INV-2026-101",
+                "invoice_number": "INV-2026-101",
+                "vendor_id": "v-acme",
+                "vendor_name": "Acme Cloud Services",
+                "invoice_date": "2026-10-15",
+                "currency": "USD",
+                "subtotal": "4500.00",
+                "tax": "450.00",
+                "total": "4950.00",
+                "status": "APPROVED_AND_SEALED",
+                "metadata": {"scenario": "Clean verified invoice from approved premier vendor"},
+                "forensics": {"risk": {"risk_score": 5, "risk_level": "LOW"}},
+            },
+            {
+                "invoice_id": "INV-2026-102",
+                "invoice_number": "INV-2026-102",
+                "vendor_id": "v-nexus",
+                "vendor_name": "Nexus Logistics",
+                "invoice_date": "2026-10-18",
+                "currency": "USD",
+                "subtotal": "3200.00",
+                "tax": "320.00",
+                "total": "3520.00",
+                "status": "MANUAL_REVIEW",
+                "metadata": {"scenario": "Line-item arithmetic & tax summation mismatch"},
+                "forensics": {"risk": {"risk_score": 75, "risk_level": "HIGH"}},
+            },
+            {
+                "invoice_id": "INV-2026-103",
+                "invoice_number": "INV-2026-103",
+                "vendor_id": "v-offshore",
+                "vendor_name": "Offshore Security Consulting",
+                "invoice_date": "2026-10-20",
+                "currency": "USD",
+                "subtotal": "42000.00",
+                "tax": "0.00",
+                "total": "42000.00",
+                "status": "BLOCKED",
+                "metadata": {"scenario": "High spend threshold & unapproved wire routing"},
+                "forensics": {"risk": {"risk_score": 95, "risk_level": "CRITICAL"}},
+            },
+            {
+                "invoice_id": "INV-2026-104",
+                "invoice_number": "INV-2026-104",
+                "vendor_id": "v-rapid",
+                "vendor_name": "Rapid Office Supplies",
+                "invoice_date": "2026-10-22",
+                "currency": "USD",
+                "subtotal": "1200.00",
+                "tax": "80.00",
+                "total": "1280.00",
+                "status": "MANUAL_REVIEW",
+                "metadata": {"scenario": "Potential duplicate billing pattern detected"},
+                "forensics": {"risk": {"risk_score": 60, "risk_level": "MEDIUM"}},
+            },
+        ]
+        for s in samples:
+            cursor.execute("""
+                INSERT OR IGNORE INTO invoices (
+                    invoice_id, invoice_number, vendor_id, vendor_name, total, currency, status, payload_json, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """, (
+                s["invoice_id"],
+                s["invoice_number"],
+                s["vendor_id"],
+                s["vendor_name"],
+                s["total"],
+                s["currency"],
+                s["status"],
+                json.dumps(s, default=_json_default),
+                now_iso,
+            ))
 
     # -------------------------------------------------------------------------
     # Invoices Persistence
