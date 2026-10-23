@@ -1,0 +1,125 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "runtime": "python",
+      "entrypoint": "api/index.py",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "strands-bedrock-preflight",
+          "format": "url",
+          "env": "STRANDS_BEDROCK_PREFLIGHT_URL"
+        }
+      ]
+    },
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite"
+    },
+    "strands-bedrock-preflight": {
+      "root": "open_source_contribution/strands-bedrock-preflight",
+      "runtime": "python",
+      "entrypoint": "api/index.py"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/dashboard/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/invoices/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/batches/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/policy/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/vendors/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/ready",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/health",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/mcp",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/docs",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/openapi.json",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/redoc",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/alexa",
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/app/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    },
+    {
+      "source": "/app",
+      "destination": {
+        "service": "frontend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}

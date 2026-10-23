@@ -118,6 +118,27 @@ class BedrockStrandsConnector:
         if self._preflight_cache is not None and not force_refresh:
             return self._preflight_cache
 
+        # Check for Vercel internal service binding
+        preflight_service_url = os.environ.get("STRANDS_BEDROCK_PREFLIGHT_URL")
+        if preflight_service_url:
+            try:
+                import urllib.request
+                req = urllib.request.Request(
+                    f"{preflight_service_url.rstrip('/')}/preflight",
+                    headers={"Accept": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    if resp.status == 200:
+                        data = json.loads(resp.read().decode())
+                        self._preflight_cache = data
+                        return data
+            except Exception as exc:
+                logger.warning(
+                    "Internal preflight service binding call failed (%s): %s; falling back to direct AWS SDK",
+                    preflight_service_url,
+                    exc,
+                )
+
         session = self.get_session()
         identity_arn = "unknown"
         account = "unknown"
