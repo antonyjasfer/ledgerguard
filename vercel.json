@@ -104,21 +104,21 @@
       }
     },
     {
-      "source": "/app/(.*)",
+      "source": "/preflight/(.*)",
       "destination": {
-        "service": "frontend"
+        "service": "strands-bedrock-preflight"
       }
     },
     {
-      "source": "/app",
+      "source": "/preflight",
       "destination": {
-        "service": "frontend"
+        "service": "strands-bedrock-preflight"
       }
     },
     {
       "source": "/(.*)",
       "destination": {
-        "service": "app"
+        "service": "frontend"
       }
     }
   ]

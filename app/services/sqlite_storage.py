@@ -22,7 +22,7 @@ from typing import Any
 
 logger = logging.getLogger("ledgerguard.services.sqlite")
 
-DB_DIR = Path("data")
+DB_DIR = Path("/tmp/data") if (os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")) else Path("data")
 DB_FILE = DB_DIR / "ledgerguard.db"
 
 
@@ -45,13 +45,22 @@ class SQLiteLedgerStore:
 
     def _get_connection(self) -> sqlite3.Connection:
         """Create a connection configured with WAL and proper timeout."""
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(str(self.db_path), timeout=20.0)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA foreign_keys=ON;")
-        conn.execute("PRAGMA busy_timeout=5000;")
-        return conn
+        try:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            conn = sqlite3.connect(str(self.db_path), timeout=20.0)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys=ON;")
+            conn.execute("PRAGMA busy_timeout=5000;")
+            try:
+                conn.execute("PRAGMA journal_mode=WAL;")
+            except Exception:
+                pass
+            return conn
+        except (OSError, sqlite3.OperationalError) as exc:
+            logger.warning("Filesystem database creation failed (%s), falling back to in-memory sqlite store.", exc)
+            conn = sqlite3.connect(":memory:", timeout=20.0)
+            conn.row_factory = sqlite3.Row
+            return conn
 
     def _initialize_database(self) -> None:
         """Create schemas for invoices, audit blocks, session turns, and vendor policies."""
