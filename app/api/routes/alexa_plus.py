@@ -207,6 +207,17 @@ HISTORICAL_INVOICES = [
         "currency": "USD",
         "status": "SETTLED",
     },
+    {
+        "invoice_id": "inv-hist-065",
+        "invoice_number": "INV-2026-065",
+        "vendor_id": "v-nexus",
+        "vendor_name": "Nexus Logistics",
+        "customer_name": "LedgerGuard Enterprise",
+        "invoice_date": "2026-09-20",
+        "total": "3200.00",
+        "currency": "USD",
+        "status": "SETTLED",
+    },
 ]
 
 
@@ -270,25 +281,55 @@ class AlexaStateService:
             arith_raw = calculate_invoice_arithmetic(inv_json)
             dup_raw = check_duplicate_invoice(inv_json, hist_json)
             vh_raw = get_vendor_history(inv.vendor_id, hist_json)
-            pol_raw = evaluate_invoice_policy(inv_json, vh_raw, dup_raw)
+
+            # Corporate AP Spend Policy Verification ($25,000 threshold)
+            # Invoices <= $25,000 pass policy check; only invoices > $25,000 trigger a policy breach.
+            is_under_25k = (inv.total or Decimal("0.00")) <= Decimal("25000.00")
+            if is_under_25k:
+                pol_dict = {
+                    "passed": True,
+                    "violations": [],
+                    "warnings": [],
+                    "requires_review": False,
+                    "should_block": False,
+                    "rules_evaluated": ["SPEND_THRESHOLD_CHECK_25K"],
+                    "status_label": "PASS",
+                }
+            else:
+                pol_dict = {
+                    "passed": False,
+                    "violations": [
+                        {
+                            "rule": "HIGH_VALUE_THRESHOLD",
+                            "observed_value": f"{inv.currency} {inv.total}",
+                            "threshold": "<=$25000.00",
+                            "action": "MANUAL_REVIEW",
+                        }
+                    ],
+                    "warnings": ["Invoice exceeds $25,000 corporate spend threshold"],
+                    "requires_review": True,
+                    "should_block": False,
+                    "rules_evaluated": ["SPEND_THRESHOLD_CHECK_25K"],
+                    "status_label": "BREACH (>$25k)",
+                }
+            pol_raw = json.dumps(pol_dict)
             risk_raw = calculate_invoice_risk(arith_raw, dup_raw, vh_raw, pol_raw, inv_json)
 
             arith_dict = json.loads(arith_raw)
             dup_dict = json.loads(dup_raw)
             vh_dict = json.loads(vh_raw)
-            pol_dict = json.loads(pol_raw)
             risk_dict = json.loads(risk_raw)
 
             # Determine initial status
             init_status = "PENDING_AUDIT"
-            if risk_dict.get("risk_level") == "LOW":
-                init_status = "VERIFIED_CLEAN"
-            elif dup_dict.get("status") == "CONFIRMED_DUPLICATE":
+            if dup_dict.get("status") == "CONFIRMED_DUPLICATE":
                 init_status = "FLAGGED_DUPLICATE"
             elif not arith_dict.get("passed"):
                 init_status = "FLAGGED_ARITHMETIC"
             elif not pol_dict.get("passed"):
                 init_status = "FLAGGED_POLICY"
+            elif risk_dict.get("risk_level") == "LOW":
+                init_status = "VERIFIED_CLEAN"
 
             self.invoice_statuses[inv_id] = init_status
 
