@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_HALF_UP
+﻿from decimal import Decimal, ROUND_HALF_UP
 """Amazon DynamoDB invoice repository, batch repository, and audit event store for LedgerGuard.
 
 Implements single-table storage design with partition key `INVOICE#{invoice_id}` or `BATCH#{batch_id}`
@@ -8,6 +8,8 @@ and `DOCUMENT#{document_id}` for ingested batch documents.
 
 from datetime import datetime, timezone
 from typing import Any
+import logging
+logger = logging.getLogger(__name__)
 
 import boto3
 from boto3.dynamodb.conditions import Attr, Key
@@ -602,3 +604,4 @@ class DynamoDBInvoiceRepository(InvoiceRepository, BatchRepository):
 
 # Alias for dependency injection separation
 DynamoDBBatchRepository = DynamoDBInvoiceRepository
+

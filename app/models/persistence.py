@@ -1,4 +1,4 @@
-"""Persistence data models and DynamoDB serialization for LedgerGuard.
+﻿"""Persistence data models and DynamoDB serialization for LedgerGuard.
 
 Enforces clean translation between domain models, Decimal-based financial precision,
 and DynamoDB storage requirements. Floating-point values are strictly prohibited.
@@ -227,9 +227,9 @@ class InvoiceRecord(BaseModel):
         rev_dec = str(cleaned.get("review_decision") or "").upper().strip()
         curr_stat = str(cleaned.get("processing_status") or "")
         if rev_dec == "APPROVE" and curr_stat in ("MANUAL_REVIEW", "ProcessingState.MANUAL_REVIEW"):
-            cleaned["processing_status"] = ProcessingState.HUMAN_APPROVED
+            cleaned["processing_status"] = ProcessingState.MANUAL_REVIEW
         elif rev_dec == "REJECT" and curr_stat in ("MANUAL_REVIEW", "ProcessingState.MANUAL_REVIEW"):
-            cleaned["processing_status"] = ProcessingState.HUMAN_REJECTED
+            cleaned["processing_status"] = ProcessingState.MANUAL_REVIEW
 
         # Parse status enum
         if "processing_status" in cleaned and isinstance(cleaned["processing_status"], str):
@@ -318,3 +318,4 @@ class InvoiceRecord(BaseModel):
             total=self.total,
             line_items=items,
         )
+

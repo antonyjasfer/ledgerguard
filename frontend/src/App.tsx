@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Navbar } from './components/Navbar.tsx';
 import { DashboardPage } from './pages/DashboardPage.tsx';
 import { InvoicesPage } from './pages/InvoicesPage.tsx';
@@ -21,9 +21,14 @@ type ViewMode =
   | 'batch_detail';
 
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramInvoiceId = urlParams.get('invoice_id');
+  const paramBatchId = urlParams.get('batch_id');
+  const paramView = (urlParams.get('view') as ViewMode) || (paramInvoiceId ? 'detail' : paramBatchId ? 'batch_detail' : 'dashboard');
+
+  const [currentView, setCurrentView] = useState<ViewMode>(paramView);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(paramInvoiceId);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(paramBatchId);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleSelectInvoice = (id: string) => {
@@ -115,3 +120,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

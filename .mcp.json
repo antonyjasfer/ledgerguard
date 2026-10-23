@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "amazon-devices-buildertools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@amazon-devices/amazon-devices-buildertools-mcp"
+      ]
+    },
+    "ledgerguard-alexa-plus-mcp": {
+      "url": "http://127.0.0.1:8000/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}

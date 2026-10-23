@@ -1,7 +1,8 @@
 """FastAPI application entrypoint for LedgerGuard.
 
 Configures application middleware, structured error handling, OpenAPI documentation,
-and mounts health, invoice verification, dashboard, enterprise context, and bulk batch ingestion routes.
+and mounts health, invoice verification, dashboard, enterprise context, bulk batch
+ingestion, and the Alexa+ Multi-Modal and Argon2id cryptographic vault routes.
 """
 
 import logging
@@ -9,11 +10,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 from app.api.errors import register_error_handlers
 from app.api.middleware import RequestCorrelationMiddleware
-from app.api.routes import batches, dashboard, enterprise, health, invoices
+from app.api.routes import alexa_plus, batches, dashboard, enterprise, health, invoices
+from app.api.static_ui import UI_HTML
 from app.config import get_settings
+from connectors.alexa_mcp_connector import router as alexa_mcp_router
 
 logger = logging.getLogger("ledgerguard.api")
 
@@ -41,7 +45,7 @@ def create_app() -> FastAPI:
             "deterministic verification tools, enterprise company policy, vendor master, "
             "bulk batch ingestion, Strands Agent reasoning, Decision Guard, and Amazon Bedrock Mantle / AWS infrastructure."
         ),
-        version="0.1.0",
+        version="0.2.0",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -69,6 +73,19 @@ def create_app() -> FastAPI:
     app.include_router(enterprise.router)
     app.include_router(invoices.router)
     app.include_router(batches.router)
+    app.include_router(alexa_mcp_router)
+    app.include_router(alexa_plus.router)
+
+    # 4. Multi-Modal Web Simulator & Dashboard Endpoints
+    @app.get("/alexa", response_class=HTMLResponse, include_in_schema=False)
+    async def alexa_ui_endpoint() -> HTMLResponse:
+        """Serve the Argon Glass Alexa+ Multi-Modal Web Simulator & Dashboard."""
+        return HTMLResponse(content=UI_HTML)
+
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+    async def root_endpoint() -> HTMLResponse:
+        """Serve unified LedgerGuard + Alexa+ Command Center."""
+        return HTMLResponse(content=UI_HTML)
 
     return app
 
